@@ -19,9 +19,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build arguments for environment variables
+# Using properly formatted dummy keys for build (real keys provided at runtime via k8s secrets)
 ARG NEXT_PUBLIC_API_URL=/api
-ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_build_placeholder
-ARG CLERK_SECRET_KEY=sk_test_build_placeholder
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_YnVpbGRfdGltZV9wbGFjZWhvbGRlcl9rZXlfZm9yX2RvY2tlcl9idWlsZA==
+ARG CLERK_SECRET_KEY=sk_test_YnVpbGRfdGltZV9zZWNyZXRfa2V5X3BsYWNlaG9sZGVyX2Zvcl9kb2NrZXJfYnVpbGQ=
 
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY

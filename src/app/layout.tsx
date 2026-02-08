@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   description: "Sistema completo para calcular custos e precificar produtos",
 };
 
+// Force dynamic rendering for all pages (required for Clerk authentication)
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: Readonly<{
