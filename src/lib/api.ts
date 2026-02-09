@@ -263,6 +263,8 @@ export interface Subscription {
   currentPeriodEnd: string | null
   stripeCustomerId: string | null
   stripePriceId: string | null
+  cancelAtPeriodEnd: boolean
+  cancelAt: string | null
   planInfo: Plan
   usage: {
     recipes: UsageInfo
@@ -290,4 +292,8 @@ export const billingApi = {
   // Cancelar assinatura
   cancelSubscription: (feedback?: string) =>
     api.post<{ success: boolean; message: string; cancelAt?: string }>('/billing/cancel', { feedback }),
+
+  // Reativar assinatura
+  reactivateSubscription: () =>
+    api.post<{ success: boolean; message: string }>('/billing/reactivate'),
 }

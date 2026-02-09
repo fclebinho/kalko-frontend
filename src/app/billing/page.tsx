@@ -85,6 +85,20 @@ function BillingContent() {
     }
   }
 
+  async function handleReactivateSubscription() {
+    try {
+      setCanceling(true)
+      const response = await billingApi.reactivateSubscription()
+      toast.success(response.data.message || 'Assinatura reativada')
+      loadSubscription()
+    } catch (error: any) {
+      console.error('Erro ao reativar:', error)
+      toast.error(error.response?.data?.error || 'Erro ao reativar assinatura')
+    } finally {
+      setCanceling(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -143,9 +157,15 @@ function BillingContent() {
             </CardTitle>
             <CardDescription>
               {isPro ? (
-                <span>
-                  {subscription.status === 'active' ? 'Ativo' : `Status: ${subscription.status}`}
-                </span>
+                subscription.cancelAtPeriodEnd ? (
+                  <span className="text-orange-500 font-medium">
+                    Cancelamento agendado
+                  </span>
+                ) : (
+                  <span>
+                    {subscription.status === 'active' ? 'Ativo' : `Status: ${subscription.status}`}
+                  </span>
+                )
               ) : (
                 <span>Plano gratuito</span>
               )}
@@ -161,15 +181,32 @@ function BillingContent() {
                 </span>
               </div>
 
-              {/* Próxima cobrança */}
+              {/* Próxima cobrança ou data de cancelamento */}
               {isPro && subscription.currentPeriodEnd && (
                 <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-sm text-muted-foreground">Próxima cobrança</span>
-                  <span className="font-medium">
+                  <span className="text-sm text-muted-foreground">
+                    {subscription.cancelAtPeriodEnd ? 'Acesso até' : 'Próxima cobrança'}
+                  </span>
+                  <span className={`font-medium ${subscription.cancelAtPeriodEnd ? 'text-orange-500' : ''}`}>
                     {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", {
                       locale: ptBR,
                     })}
                   </span>
+                </div>
+              )}
+
+              {/* Banner de cancelamento pendente */}
+              {subscription.cancelAtPeriodEnd && (
+                <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-orange-700">Cancelamento agendado</p>
+                      <p className="text-orange-600 mt-1">
+                        Sua assinatura será encerrada ao final do período atual. Você pode reativar a qualquer momento antes disso.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -291,13 +328,23 @@ function BillingContent() {
                   {processingPortal ? 'Abrindo...' : 'Gerenciar Pagamento'}
                 </Button>
 
-                <Button
-                  variant="ghost"
-                  className="w-full text-destructive hover:text-destructive"
-                  onClick={() => setCancelDialogOpen(true)}
-                >
-                  Cancelar Assinatura
-                </Button>
+                {subscription.cancelAtPeriodEnd ? (
+                  <Button
+                    className="w-full"
+                    onClick={handleReactivateSubscription}
+                    disabled={canceling}
+                  >
+                    {canceling ? 'Reativando...' : 'Reativar Assinatura'}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    className="w-full text-destructive hover:text-destructive"
+                    onClick={() => setCancelDialogOpen(true)}
+                  >
+                    Cancelar Assinatura
+                  </Button>
+                )}
               </>
             )}
 
