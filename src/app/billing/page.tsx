@@ -108,10 +108,13 @@ function BillingContent() {
   const planPrice = subscription.planInfo.price
   const { usage } = subscription
 
-  const recipesPercentage = usage.recipes.limit === Infinity
+  // Infinity is serialized as null in JSON
+  const isUnlimited = (limit: number | null) => !limit || limit === null
+
+  const recipesPercentage = isUnlimited(usage.recipes.limit)
     ? 0
     : Math.min(100, Math.round((usage.recipes.current / usage.recipes.limit) * 100))
-  const ingredientsPercentage = usage.ingredients.limit === Infinity
+  const ingredientsPercentage = isUnlimited(usage.ingredients.limit)
     ? 0
     : Math.min(100, Math.round((usage.ingredients.current / usage.ingredients.limit) * 100))
 
@@ -203,10 +206,10 @@ function BillingContent() {
                   <span className="text-sm font-medium">Receitas</span>
                 </div>
                 <span className={`text-sm font-medium ${getProgressColor(recipesPercentage)}`}>
-                  {usage.recipes.current}{usage.recipes.limit === Infinity ? '' : ` / ${usage.recipes.limit}`}
+                  {usage.recipes.current}{isUnlimited(usage.recipes.limit) ? '' : ` / ${usage.recipes.limit}`}
                 </span>
               </div>
-              {usage.recipes.limit === Infinity ? (
+              {isUnlimited(usage.recipes.limit) ? (
                 <p className="text-xs text-muted-foreground">Ilimitado</p>
               ) : (
                 <>
@@ -233,10 +236,10 @@ function BillingContent() {
                   <span className="text-sm font-medium">Ingredientes</span>
                 </div>
                 <span className={`text-sm font-medium ${getProgressColor(ingredientsPercentage)}`}>
-                  {usage.ingredients.current}{usage.ingredients.limit === Infinity ? '' : ` / ${usage.ingredients.limit}`}
+                  {usage.ingredients.current}{isUnlimited(usage.ingredients.limit) ? '' : ` / ${usage.ingredients.limit}`}
                 </span>
               </div>
-              {usage.ingredients.limit === Infinity ? (
+              {isUnlimited(usage.ingredients.limit) ? (
                 <p className="text-xs text-muted-foreground">Ilimitado</p>
               ) : (
                 <>
