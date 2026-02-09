@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   const config = {
     clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
+    apiUrl: process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3001',
     stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
   }
 

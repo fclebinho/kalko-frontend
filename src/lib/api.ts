@@ -1,6 +1,15 @@
 import axios, { InternalAxiosRequestConfig } from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+// In production, use /api proxy (browser and server)
+// In development, use localhost:3001 directly
+const getApiUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return '/api'
+  }
+  return 'http://localhost:3001'
+}
+
+const API_URL = getApiUrl()
 
 // Variable to store the token getter function
 let getTokenFunction: (() => Promise<string | null>) | null = null
