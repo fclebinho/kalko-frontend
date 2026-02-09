@@ -219,6 +219,12 @@ export const costsApi = {
 
   createVariableCost: (data: { name: string; amount: number; month: string }) =>
     api.post<VariableCost>('/costs/variable', data),
+
+  updateVariableCost: (id: string, amount: number) =>
+    api.put<VariableCost>(`/costs/variable/${id}`, { amount }),
+
+  deleteVariableCost: (id: string) =>
+    api.delete(`/costs/variable/${id}`),
 }
 
 // API Methods - Dashboard

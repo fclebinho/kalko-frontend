@@ -105,6 +105,18 @@ export default function CostsPage() {
     }
   }
 
+  const handleDeleteVariable = async (id: string) => {
+    if (!confirm('Tem certeza?')) return
+
+    try {
+      await costsApi.deleteVariableCost(id)
+      toast.success('Custo excluído')
+      loadSettings()
+    } catch (error) {
+      toast.error('Erro ao excluir')
+    }
+  }
+
   if (loading) {
     return (
       <>
@@ -264,7 +276,16 @@ export default function CostsPage() {
                           })}
                         </p>
                       </div>
-                      <span className="font-bold">R$ {cost.amount.toFixed(2)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">R$ {cost.amount.toFixed(2)}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteVariable(cost.id)}
+                        >
+                          Excluir
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
