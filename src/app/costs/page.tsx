@@ -14,6 +14,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { costsApi, CostsSettings, FixedCost } from '@/lib/api'
 import { Plus, DollarSign, Clock, TrendingUp } from 'lucide-react'
 import { toast } from 'sonner'
@@ -29,6 +39,8 @@ export default function CostsPage() {
     amount: 0,
     month: new Date().toISOString().slice(0, 7)
   })
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; type: 'fixed' | 'variable'; name: string } | null>(null)
 
   useEffect(() => {
     loadSettings()
@@ -93,27 +105,32 @@ export default function CostsPage() {
     }
   }
 
-  const handleDeleteFixed = async (id: string) => {
-    if (!confirm('Tem certeza?')) return
-
-    try {
-      await costsApi.deleteFixedCost(id)
-      toast.success('Custo excluído')
-      loadSettings()
-    } catch (error) {
-      toast.error('Erro ao excluir')
-    }
+  const handleDeleteFixed = (id: string, name: string) => {
+    setDeleteTarget({ id, type: 'fixed', name })
+    setDeleteDialogOpen(true)
   }
 
-  const handleDeleteVariable = async (id: string) => {
-    if (!confirm('Tem certeza?')) return
+  const handleDeleteVariable = (id: string, name: string) => {
+    setDeleteTarget({ id, type: 'variable', name })
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
 
     try {
-      await costsApi.deleteVariableCost(id)
+      if (deleteTarget.type === 'fixed') {
+        await costsApi.deleteFixedCost(deleteTarget.id)
+      } else {
+        await costsApi.deleteVariableCost(deleteTarget.id)
+      }
       toast.success('Custo excluído')
       loadSettings()
     } catch (error) {
       toast.error('Erro ao excluir')
+    } finally {
+      setDeleteDialogOpen(false)
+      setDeleteTarget(null)
     }
   }
 
@@ -227,7 +244,7 @@ export default function CostsPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteFixed(cost.id)}
+                          onClick={() => handleDeleteFixed(cost.id, cost.name)}
                         >
                           Excluir
                         </Button>
@@ -281,7 +298,7 @@ export default function CostsPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteVariable(cost.id)}
+                          onClick={() => handleDeleteVariable(cost.id, cost.name)}
                         >
                           Excluir
                         </Button>
@@ -393,6 +410,24 @@ export default function CostsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir custo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir &quot;{deleteTarget?.name}&quot;? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

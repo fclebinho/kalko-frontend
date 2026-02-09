@@ -15,6 +15,16 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { recipesApi } from '@/lib/api'
 import { ArrowLeft, Clock, Package, DollarSign, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -91,6 +101,7 @@ export default function RecipeDetailsPage() {
 
   const [recipe, setRecipe] = useState<RecipeDetails | null>(null)
   const [loading, setLoading] = useState(true)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -126,9 +137,11 @@ export default function RecipeDetailsPage() {
     return <CheckCircle className="h-4 w-4" />
   }
 
-  const handleDelete = async () => {
-    if (!confirm('Tem certeza que deseja excluir esta receita?')) return
+  const handleDelete = () => {
+    setDeleteDialogOpen(true)
+  }
 
+  const confirmDelete = async () => {
     try {
       await recipesApi.delete(id)
       toast.success('Receita excluída com sucesso')
@@ -136,6 +149,8 @@ export default function RecipeDetailsPage() {
     } catch (error: any) {
       const message = error.response?.data?.message || error.response?.data?.error || 'Erro ao excluir receita'
       toast.error(message)
+    } finally {
+      setDeleteDialogOpen(false)
     }
   }
 
@@ -492,6 +507,24 @@ export default function RecipeDetailsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir receita</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir &quot;{recipe?.name}&quot;? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
