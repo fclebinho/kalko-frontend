@@ -59,16 +59,18 @@ async function proxyRequest(
     const searchParams = request.nextUrl.searchParams.toString()
     const url = `${API_URL}/${path}${searchParams ? `?${searchParams}` : ''}`
 
-    // Get headers (skip authorization - will be set below)
+    // Get headers
     const headers: Record<string, string> = {}
     request.headers.forEach((value, key) => {
-      if (key !== 'host' && key !== 'connection' && key !== 'authorization') {
+      if (key !== 'host' && key !== 'connection') {
         headers[key] = value
       }
     })
 
-    // Add dev token for now (later will use Clerk)
-    headers['authorization'] = 'Bearer token-dev'
+    // Forward Clerk token from request, or fallback to dev token in development
+    if (!headers['authorization']) {
+      headers['authorization'] = 'Bearer token-dev'
+    }
 
     // Get body for POST/PUT
     let body: string | undefined
