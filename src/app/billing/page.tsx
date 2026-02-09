@@ -5,8 +5,20 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { billingApi, Subscription } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
-import { ArrowRight, CheckCircle2, CreditCard } from 'lucide-react'
+import { ArrowRight, CheckCircle2, CreditCard, AlertTriangle, ChefHat, Package } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -16,14 +28,16 @@ function BillingContent() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [processingPortal, setProcessingPortal] = useState(false)
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [cancelFeedback, setCancelFeedback] = useState('')
+  const [canceling, setCanceling] = useState(false)
 
   useEffect(() => {
     loadSubscription()
 
     // Verificar se veio de um checkout bem-sucedido
     if (searchParams?.get('success') === 'true') {
-      toast.success('Upgrade realizado com sucesso! 🎉')
-      // Limpar query params
+      toast.success('Upgrade realizado com sucesso!')
       router.replace('/billing')
     }
   }, [searchParams])
@@ -55,6 +69,22 @@ function BillingContent() {
     }
   }
 
+  async function handleCancelSubscription() {
+    try {
+      setCanceling(true)
+      const response = await billingApi.cancelSubscription(cancelFeedback || undefined)
+      toast.success(response.data.message || 'Assinatura cancelada')
+      setCancelDialogOpen(false)
+      setCancelFeedback('')
+      loadSubscription()
+    } catch (error: any) {
+      console.error('Erro ao cancelar:', error)
+      toast.error(error.response?.data?.error || 'Erro ao cancelar assinatura')
+    } finally {
+      setCanceling(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -76,6 +106,20 @@ function BillingContent() {
   const isPro = subscription.plan !== 'free'
   const planName = subscription.planInfo.name
   const planPrice = subscription.planInfo.price
+  const { usage } = subscription
+
+  const recipesPercentage = usage.recipes.limit === Infinity
+    ? 0
+    : Math.min(100, Math.round((usage.recipes.current / usage.recipes.limit) * 100))
+  const ingredientsPercentage = usage.ingredients.limit === Infinity
+    ? 0
+    : Math.min(100, Math.round((usage.ingredients.current / usage.ingredients.limit) * 100))
+
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 100) return 'text-red-600'
+    if (percentage >= 80) return 'text-orange-500'
+    return 'text-primary'
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -97,7 +141,7 @@ function BillingContent() {
             <CardDescription>
               {isPro ? (
                 <span>
-                  {subscription.status === 'active' ? '✓ Ativo' : `Status: ${subscription.status}`}
+                  {subscription.status === 'active' ? 'Ativo' : `Status: ${subscription.status}`}
                 </span>
               ) : (
                 <span>Plano gratuito</span>
@@ -142,6 +186,87 @@ function BillingContent() {
           </CardContent>
         </Card>
 
+        {/* Uso do Plano */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Uso do Plano</CardTitle>
+            <CardDescription>
+              Acompanhe o consumo dos recursos do seu plano
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Receitas */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ChefHat className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Receitas</span>
+                </div>
+                <span className={`text-sm font-medium ${getProgressColor(recipesPercentage)}`}>
+                  {usage.recipes.current}{usage.recipes.limit === Infinity ? '' : ` / ${usage.recipes.limit}`}
+                </span>
+              </div>
+              {usage.recipes.limit === Infinity ? (
+                <p className="text-xs text-muted-foreground">Ilimitado</p>
+              ) : (
+                <>
+                  <Progress value={recipesPercentage} />
+                  {recipesPercentage >= 80 && (
+                    <div className="flex items-center gap-1 text-xs text-orange-500">
+                      <AlertTriangle className="h-3 w-3" />
+                      <span>
+                        {recipesPercentage >= 100
+                          ? 'Limite atingido! Faça upgrade para criar mais receitas.'
+                          : 'Você está se aproximando do limite.'}
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Ingredientes */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Ingredientes</span>
+                </div>
+                <span className={`text-sm font-medium ${getProgressColor(ingredientsPercentage)}`}>
+                  {usage.ingredients.current}{usage.ingredients.limit === Infinity ? '' : ` / ${usage.ingredients.limit}`}
+                </span>
+              </div>
+              {usage.ingredients.limit === Infinity ? (
+                <p className="text-xs text-muted-foreground">Ilimitado</p>
+              ) : (
+                <>
+                  <Progress value={ingredientsPercentage} />
+                  {ingredientsPercentage >= 80 && (
+                    <div className="flex items-center gap-1 text-xs text-orange-500">
+                      <AlertTriangle className="h-3 w-3" />
+                      <span>
+                        {ingredientsPercentage >= 100
+                          ? 'Limite atingido! Faça upgrade para adicionar mais ingredientes.'
+                          : 'Você está se aproximando do limite.'}
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {!isPro && (recipesPercentage >= 80 || ingredientsPercentage >= 80) && (
+              <Button
+                className="w-full"
+                onClick={() => router.push('/pricing')}
+              >
+                <ArrowRight className="mr-2 h-4 w-4" />
+                Fazer Upgrade
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Ações */}
         <Card>
           <CardHeader>
@@ -162,15 +287,25 @@ function BillingContent() {
             )}
 
             {isPro && subscription.stripeCustomerId && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={openCustomerPortal}
-                disabled={processingPortal}
-              >
-                <CreditCard className="mr-2 h-4 w-4" />
-                {processingPortal ? 'Abrindo...' : 'Gerenciar Pagamento e Cancelar'}
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={openCustomerPortal}
+                  disabled={processingPortal}
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  {processingPortal ? 'Abrindo...' : 'Gerenciar Pagamento'}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  className="w-full text-destructive hover:text-destructive"
+                  onClick={() => setCancelDialogOpen(true)}
+                >
+                  Cancelar Assinatura
+                </Button>
+              </>
             )}
 
             {!isPro && (
@@ -187,15 +322,56 @@ function BillingContent() {
             <CardTitle className="text-base">Informações</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-2">
-            <p>• Você pode cancelar sua assinatura a qualquer momento</p>
-            <p>• Ao cancelar, você mantém acesso até o final do período pago</p>
-            <p>• Seus dados nunca são deletados, apenas seu acesso é limitado ao plano Free</p>
-            <p>
-              • Precisa de ajuda? <a href="/support" className="text-primary hover:underline">Entre em contato</a>
-            </p>
+            <p>Você pode cancelar sua assinatura a qualquer momento</p>
+            <p>Ao cancelar, você mantém acesso até o final do período pago</p>
+            <p>Seus dados nunca são deletados, apenas seu acesso é limitado ao plano Free</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Cancel Confirmation Dialog */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Assinatura</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Tem certeza que deseja cancelar sua assinatura <strong>{planName}</strong>?
+                </p>
+                <p>
+                  Você manterá acesso aos recursos até o final do período atual
+                  {subscription.currentPeriodEnd && (
+                    <> ({format(new Date(subscription.currentPeriodEnd), "dd/MM/yyyy", { locale: ptBR })})</>
+                  )}.
+                  Após isso, seu plano será alterado para Free.
+                </p>
+                <div className="pt-2">
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    Conte-nos o motivo (opcional):
+                  </p>
+                  <Textarea
+                    placeholder="O que podemos melhorar?"
+                    value={cancelFeedback}
+                    onChange={(e) => setCancelFeedback(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={canceling}>Manter Assinatura</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelSubscription}
+              disabled={canceling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {canceling ? 'Cancelando...' : 'Confirmar Cancelamento'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

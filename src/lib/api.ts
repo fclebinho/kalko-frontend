@@ -252,6 +252,11 @@ export interface Plan {
   stripePriceId?: string
 }
 
+export interface UsageInfo {
+  current: number
+  limit: number
+}
+
 export interface Subscription {
   plan: string
   status: string
@@ -259,6 +264,10 @@ export interface Subscription {
   stripeCustomerId: string | null
   stripePriceId: string | null
   planInfo: Plan
+  usage: {
+    recipes: UsageInfo
+    ingredients: UsageInfo
+  }
 }
 
 export const billingApi = {
@@ -279,6 +288,6 @@ export const billingApi = {
     api.get<{ url: string }>('/billing/portal'),
 
   // Cancelar assinatura
-  cancelSubscription: () =>
-    api.post<{ success: boolean }>('/billing/cancel'),
+  cancelSubscription: (feedback?: string) =>
+    api.post<{ success: boolean; message: string; cancelAt?: string }>('/billing/cancel', { feedback }),
 }
