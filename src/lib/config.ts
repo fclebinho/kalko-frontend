@@ -19,9 +19,9 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
     // Se estamos no servidor, ler diretamente do process.env
     if (typeof window === 'undefined') {
       cachedConfig = {
-        clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
-        apiUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
-        stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+        clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+        apiUrl: '/api',
+        stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
       }
       return cachedConfig
     }
@@ -39,9 +39,9 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
 
     // Fallback para variáveis de build (se existirem)
     cachedConfig = {
-      clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
-      apiUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
-      stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+      clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+      apiUrl: '/api',
+      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
     }
 
     return cachedConfig
@@ -56,8 +56,8 @@ export function getConfig(): RuntimeConfig {
 
   // Valores padrão se ainda não carregado
   return {
-    clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
-    stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+    clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+    apiUrl: '/api',
+    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
   }
 }
