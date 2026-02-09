@@ -78,6 +78,7 @@ export interface Ingredient {
   unit: string
   supplier?: string
   costPerUnit: number
+  usedInRecipes?: number
   createdAt: string
   updatedAt: string
 }
@@ -195,6 +196,9 @@ export const recipesApi = {
 
   getUsedIn: (id: string) =>
     api.get<{ data: Array<{ id: string; name: string }> }>(`/recipes/${id}/used-in`),
+
+  duplicate: (id: string) =>
+    api.post<Recipe>(`/recipes/${id}/duplicate`),
 
   delete: (id: string) =>
     api.delete(`/recipes/${id}`)

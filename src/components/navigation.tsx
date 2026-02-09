@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
-import { LayoutDashboard, Package, ChefHat, DollarSign, CreditCard, Sparkles } from 'lucide-react'
+import { LayoutDashboard, Package, ChefHat, DollarSign, CreditCard, Sparkles, List } from 'lucide-react'
 
 const navItems = [
   {
@@ -25,6 +25,11 @@ const navItems = [
     name: 'Custos',
     href: '/costs',
     icon: DollarSign
+  },
+  {
+    name: 'Preços',
+    href: '/price-list',
+    icon: List
   },
   {
     name: 'Planos',
@@ -54,7 +59,7 @@ export function Navigation() {
             <div className="flex gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.href
+                const isActive = item.href === '/' ? pathname === '/' : pathname?.startsWith(item.href)
 
                 return (
                   <Link

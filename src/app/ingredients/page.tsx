@@ -49,7 +49,7 @@ export default function IngredientsPage() {
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [ingredientToDelete, setIngredientToDelete] = useState<{ id: string; name: string } | null>(null)
+  const [ingredientToDelete, setIngredientToDelete] = useState<{ id: string; name: string; usedInRecipes: number } | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -108,8 +108,13 @@ export default function IngredientsPage() {
 
     try {
       if (editingId) {
-        await ingredientsApi.update(editingId, formData)
-        toast.success('Ingrediente atualizado com sucesso')
+        const response = await ingredientsApi.update(editingId, formData)
+        const recipesUpdated = (response.data as any).recipesUpdated || 0
+        if (recipesUpdated > 0) {
+          toast.success(`Ingrediente atualizado. ${recipesUpdated} receita(s) recalculada(s)`)
+        } else {
+          toast.success('Ingrediente atualizado com sucesso')
+        }
       } else {
         await ingredientsApi.create(formData)
         toast.success('Ingrediente criado com sucesso')
@@ -121,8 +126,8 @@ export default function IngredientsPage() {
     }
   }
 
-  const handleDeleteClick = (id: string, name: string) => {
-    setIngredientToDelete({ id, name })
+  const handleDeleteClick = (ingredient: Ingredient) => {
+    setIngredientToDelete({ id: ingredient.id, name: ingredient.name, usedInRecipes: ingredient.usedInRecipes || 0 })
     setDeleteDialogOpen(true)
   }
 
@@ -198,6 +203,7 @@ export default function IngredientsPage() {
                     <TableHead>Custo Total</TableHead>
                     <TableHead>Custo/Unidade</TableHead>
                     <TableHead>Fornecedor</TableHead>
+                    <TableHead>Usado em</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -213,6 +219,13 @@ export default function IngredientsPage() {
                         R$ {ingredient.costPerUnit.toFixed(4)}/{ingredient.unit}
                       </TableCell>
                       <TableCell>{ingredient.supplier || '-'}</TableCell>
+                      <TableCell>
+                        {ingredient.usedInRecipes ? (
+                          <span className="text-sm text-muted-foreground">{ingredient.usedInRecipes} receita(s)</span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -225,7 +238,7 @@ export default function IngredientsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDeleteClick(ingredient.id, ingredient.name)}
+                            onClick={() => handleDeleteClick(ingredient)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -360,20 +373,46 @@ export default function IngredientsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir <strong>{ingredientToDelete?.name}</strong>?
-              Esta ação não pode ser desfeita.
+            <AlertDialogTitle>
+              {ingredientToDelete && ingredientToDelete.usedInRecipes > 0
+                ? 'Não é possível excluir'
+                : 'Confirmar Exclusão'}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div>
+                {ingredientToDelete && ingredientToDelete.usedInRecipes > 0 ? (
+                  <>
+                    <p>
+                      O ingrediente <strong>{ingredientToDelete.name}</strong> está sendo usado em{' '}
+                      <strong>{ingredientToDelete.usedInRecipes} receita(s)</strong>.
+                    </p>
+                    <p className="mt-2">
+                      Remova este ingrediente das receitas antes de excluí-lo.
+                    </p>
+                  </>
+                ) : (
+                  <p>
+                    Tem certeza que deseja excluir <strong>{ingredientToDelete?.name}</strong>?
+                    Esta ação não pode ser desfeita.
+                  </p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Excluir
-            </AlertDialogAction>
+            {ingredientToDelete && ingredientToDelete.usedInRecipes > 0 ? (
+              <AlertDialogCancel>Entendi</AlertDialogCancel>
+            ) : (
+              <>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteConfirm}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

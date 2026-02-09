@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { recipesApi } from '@/lib/api'
-import { ArrowLeft, Clock, Package, DollarSign, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react'
+import { ArrowLeft, Clock, Package, DollarSign, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Trash2, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { PriceCalculator } from '@/components/price-calculator'
@@ -497,6 +497,18 @@ export default function RecipeDetailsPage() {
         <div className="flex gap-4">
           <Button onClick={() => router.push(`/recipes/${id}/edit`)}>
             Editar Receita
+          </Button>
+          <Button variant="outline" onClick={async () => {
+            try {
+              const response = await recipesApi.duplicate(id)
+              toast.success('Receita duplicada com sucesso')
+              router.push(`/recipes/${(response.data as any).id}`)
+            } catch (error: any) {
+              toast.error(error.response?.data?.message || 'Erro ao duplicar receita')
+            }
+          }}>
+            <Copy className="mr-2 h-4 w-4" />
+            Duplicar
           </Button>
           <Button variant="outline" onClick={() => router.push('/recipes')}>
             Voltar

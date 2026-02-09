@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { recipesApi, Recipe } from '@/lib/api'
-import { Plus, Search, Eye, Trash2 } from 'lucide-react'
+import { Plus, Search, Eye, Trash2, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -69,6 +69,16 @@ export default function RecipesPage() {
     } finally {
       setDeleteDialogOpen(false)
       setDeleteTarget(null)
+    }
+  }
+
+  const handleDuplicate = async (id: string, name: string) => {
+    try {
+      await recipesApi.duplicate(id)
+      toast.success(`Receita "${name}" duplicada com sucesso`)
+      loadRecipes()
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Erro ao duplicar receita')
     }
   }
 
@@ -146,7 +156,7 @@ export default function RecipesPage() {
                   {recipes.map((recipe) => (
                     <TableRow key={recipe.id}>
                       <TableCell className="font-medium">{recipe.name}</TableCell>
-                      <TableCell>{recipe.yield} un</TableCell>
+                      <TableCell>{recipe.yield} {recipe.yieldUnit || 'un'}</TableCell>
                       <TableCell>{recipe.prepTime} min</TableCell>
                       <TableCell>
                         R$ {recipe.unitCost?.toFixed(2) || '0.00'}
@@ -171,13 +181,22 @@ export default function RecipesPage() {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Link href={`/recipes/${recipe.id}`}>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" title="Ver detalhes">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
                           <Button
                             variant="ghost"
                             size="icon"
+                            title="Duplicar"
+                            onClick={() => handleDuplicate(recipe.id, recipe.name)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Excluir"
                             onClick={() => handleDelete(recipe.id, recipe.name)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
