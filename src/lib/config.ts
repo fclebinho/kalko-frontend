@@ -19,7 +19,7 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
     // Se estamos no servidor, ler diretamente do process.env
     if (typeof window === 'undefined') {
       cachedConfig = {
-        clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+        clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
         apiUrl: '/api',
         stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
       }
@@ -33,13 +33,13 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
     }
 
     cachedConfig = await response.json()
-    return cachedConfig
+    return cachedConfig!
   } catch (error) {
     console.error('Error loading runtime config:', error)
 
     // Fallback para variáveis de build (se existirem)
     cachedConfig = {
-      clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+      clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
       apiUrl: '/api',
       stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
     }
@@ -56,7 +56,7 @@ export function getConfig(): RuntimeConfig {
 
   // Valores padrão se ainda não carregado
   return {
-    clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
+    clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
     apiUrl: '/api',
     stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
   }
