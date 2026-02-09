@@ -167,7 +167,10 @@ export default function Dashboard() {
                           {recipe.name}
                         </Link>
                         <div className="text-sm text-muted-foreground">
-                          Custo: R$ {recipe.unitCost?.toFixed(2) || '0.00'}
+                          Custo: R$ {((recipe as any).yieldUnit && (recipe as any).yieldUnit !== 'un'
+                            ? (recipe as any).totalCost
+                            : recipe.unitCost
+                          )?.toFixed(2) || '0.00'}
                         </div>
                       </div>
                       {recipe.margin !== null && recipe.margin !== undefined && (
@@ -206,7 +209,10 @@ export default function Dashboard() {
                           {recipe.name}
                         </Link>
                         <div className="text-sm text-muted-foreground">
-                          R$ {recipe.unitCost?.toFixed(2)} → R${' '}
+                          R$ {((recipe as any).yieldUnit && (recipe as any).yieldUnit !== 'un'
+                            ? (recipe as any).totalCost
+                            : recipe.unitCost
+                          )?.toFixed(2)} → R${' '}
                           {recipe.sellingPrice?.toFixed(2)}
                         </div>
                       </div>
