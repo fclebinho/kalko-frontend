@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+// Use BACKEND_API_URL for server-side proxy, fallback to localhost for development
+const API_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 /**
  * API Route Proxy
@@ -10,7 +11,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
  *
  * Example:
  * - Frontend: GET /api/ingredients
- * - Backend: GET http://localhost:3001/v1/ingredients
+ * - Backend: GET http://backend:3001/v1/ingredients (in production via BACKEND_API_URL)
+ * - Backend: GET http://localhost:3001/v1/ingredients (in development)
  */
 export async function GET(
   request: NextRequest,
