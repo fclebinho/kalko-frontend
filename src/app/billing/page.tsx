@@ -189,86 +189,76 @@ function BillingContent() {
           </CardContent>
         </Card>
 
-        {/* Uso do Plano */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Uso do Plano</CardTitle>
-            <CardDescription>
-              Acompanhe o consumo dos recursos do seu plano
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Receitas */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ChefHat className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Receitas</span>
+        {/* Uso do Plano - só exibe quando há limites */}
+        {(!isUnlimited(usage.recipes.limit) || !isUnlimited(usage.ingredients.limit)) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Uso do Plano</CardTitle>
+              <CardDescription>
+                Acompanhe o consumo dos recursos do seu plano
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Receitas */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ChefHat className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Receitas</span>
+                  </div>
+                  <span className={`text-sm font-medium ${getProgressColor(recipesPercentage)}`}>
+                    {usage.recipes.current} / {usage.recipes.limit}
+                  </span>
                 </div>
-                <span className={`text-sm font-medium ${getProgressColor(recipesPercentage)}`}>
-                  {usage.recipes.current}{isUnlimited(usage.recipes.limit) ? '' : ` / ${usage.recipes.limit}`}
-                </span>
+                <Progress value={recipesPercentage} />
+                {recipesPercentage >= 80 && (
+                  <div className="flex items-center gap-1 text-xs text-orange-500">
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>
+                      {recipesPercentage >= 100
+                        ? 'Limite atingido! Faça upgrade para criar mais receitas.'
+                        : 'Você está se aproximando do limite.'}
+                    </span>
+                  </div>
+                )}
               </div>
-              {isUnlimited(usage.recipes.limit) ? (
-                <p className="text-xs text-muted-foreground">Ilimitado</p>
-              ) : (
-                <>
-                  <Progress value={recipesPercentage} />
-                  {recipesPercentage >= 80 && (
-                    <div className="flex items-center gap-1 text-xs text-orange-500">
-                      <AlertTriangle className="h-3 w-3" />
-                      <span>
-                        {recipesPercentage >= 100
-                          ? 'Limite atingido! Faça upgrade para criar mais receitas.'
-                          : 'Você está se aproximando do limite.'}
-                      </span>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
 
-            {/* Ingredientes */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Ingredientes</span>
+              {/* Ingredientes */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Ingredientes</span>
+                  </div>
+                  <span className={`text-sm font-medium ${getProgressColor(ingredientsPercentage)}`}>
+                    {usage.ingredients.current} / {usage.ingredients.limit}
+                  </span>
                 </div>
-                <span className={`text-sm font-medium ${getProgressColor(ingredientsPercentage)}`}>
-                  {usage.ingredients.current}{isUnlimited(usage.ingredients.limit) ? '' : ` / ${usage.ingredients.limit}`}
-                </span>
+                <Progress value={ingredientsPercentage} />
+                {ingredientsPercentage >= 80 && (
+                  <div className="flex items-center gap-1 text-xs text-orange-500">
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>
+                      {ingredientsPercentage >= 100
+                        ? 'Limite atingido! Faça upgrade para adicionar mais ingredientes.'
+                        : 'Você está se aproximando do limite.'}
+                    </span>
+                  </div>
+                )}
               </div>
-              {isUnlimited(usage.ingredients.limit) ? (
-                <p className="text-xs text-muted-foreground">Ilimitado</p>
-              ) : (
-                <>
-                  <Progress value={ingredientsPercentage} />
-                  {ingredientsPercentage >= 80 && (
-                    <div className="flex items-center gap-1 text-xs text-orange-500">
-                      <AlertTriangle className="h-3 w-3" />
-                      <span>
-                        {ingredientsPercentage >= 100
-                          ? 'Limite atingido! Faça upgrade para adicionar mais ingredientes.'
-                          : 'Você está se aproximando do limite.'}
-                      </span>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
 
-            {!isPro && (recipesPercentage >= 80 || ingredientsPercentage >= 80) && (
-              <Button
-                className="w-full"
-                onClick={() => router.push('/pricing')}
-              >
-                <ArrowRight className="mr-2 h-4 w-4" />
-                Fazer Upgrade
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+              {(recipesPercentage >= 80 || ingredientsPercentage >= 80) && (
+                <Button
+                  className="w-full"
+                  onClick={() => router.push('/pricing')}
+                >
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Fazer Upgrade
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Ações */}
         <Card>
