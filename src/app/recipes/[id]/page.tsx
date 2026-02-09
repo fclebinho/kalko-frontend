@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { recipesApi } from '@/lib/api'
-import { ArrowLeft, Clock, Package, DollarSign, TrendingUp, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Clock, Package, DollarSign, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { PriceCalculator } from '@/components/price-calculator'
@@ -124,6 +124,19 @@ export default function RecipeDetailsPage() {
     if (!margin || margin < 0) return <AlertCircle className="h-4 w-4" />
     if (margin < 20) return <AlertTriangle className="h-4 w-4" />
     return <CheckCircle className="h-4 w-4" />
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Tem certeza que deseja excluir esta receita?')) return
+
+    try {
+      await recipesApi.delete(id)
+      toast.success('Receita excluída com sucesso')
+      router.push('/recipes')
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.response?.data?.error || 'Erro ao excluir receita'
+      toast.error(message)
+    }
   }
 
   const handleApplyPrice = async (price: number) => {
@@ -472,6 +485,10 @@ export default function RecipeDetailsPage() {
           </Button>
           <Button variant="outline" onClick={() => router.push('/recipes')}>
             Voltar
+          </Button>
+          <Button variant="destructive" onClick={handleDelete}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            Excluir
           </Button>
         </div>
       </div>

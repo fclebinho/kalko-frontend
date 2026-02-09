@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { recipesApi, Recipe } from '@/lib/api'
-import { Plus, Search, Eye } from 'lucide-react'
+import { Plus, Search, Eye, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -36,6 +36,19 @@ export default function RecipesPage() {
       toast.error('Erro ao carregar receitas')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Tem certeza que deseja excluir "${name}"?`)) return
+
+    try {
+      await recipesApi.delete(id)
+      toast.success('Receita excluída')
+      loadRecipes()
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.response?.data?.error || 'Erro ao excluir receita'
+      toast.error(message)
     }
   }
 
@@ -136,11 +149,20 @@ export default function RecipesPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link href={`/recipes/${recipe.id}`}>
-                          <Button variant="ghost" size="icon">
-                            <Eye className="h-4 w-4" />
+                        <div className="flex justify-end gap-1">
+                          <Link href={`/recipes/${recipe.id}`}>
+                            <Button variant="ghost" size="icon">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(recipe.id, recipe.name)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
-                        </Link>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
