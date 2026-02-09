@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+// In production, use /api proxy. In development, use localhost
+const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3001'
 
 // Função para criar um cliente API com token
 export function createApiClient(getToken: () => Promise<string | null>) {
