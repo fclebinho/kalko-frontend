@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ingredientsApi, Ingredient } from '@/lib/api'
+import { PriceHistoryChart } from '@/components/price-history-chart'
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -354,6 +355,15 @@ export default function IngredientsPage() {
                     {(formData.cost / formData.quantity).toFixed(4)}/{formData.unit}
                   </p>
                 </div>
+              )}
+
+              {editingId && (
+                <PriceHistoryChart
+                  entityType="ingredient"
+                  entityId={editingId}
+                  title="Histórico de Preços"
+                  fields={['cost', 'quantity']}
+                />
               )}
             </div>
 

@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { dashboardApi, DashboardData } from '@/lib/api'
+import { dashboardApi, analyticsApi, DashboardData, TopIngredient } from '@/lib/api'
 import { Package, ChefHat, DollarSign, TrendingUp, AlertCircle, AlertTriangle } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
+  const [topIngredients, setTopIngredients] = useState<TopIngredient[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -20,8 +22,12 @@ export default function Dashboard() {
   const loadDashboard = async () => {
     try {
       setLoading(true)
-      const response = await dashboardApi.get()
-      setData(response.data)
+      const [dashboardRes, ingredientsRes] = await Promise.all([
+        dashboardApi.get(),
+        analyticsApi.getTopIngredients().catch(() => ({ data: { data: [] } })),
+      ])
+      setData(dashboardRes.data)
+      setTopIngredients(ingredientsRes.data.data)
     } catch (error: any) {
       console.error('Erro ao carregar dashboard:', error)
       toast.error('Erro ao carregar dashboard')
@@ -228,6 +234,68 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Top Ingredients */}
+        {topIngredients.length > 0 && (
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle>Ingredientes Mais Caros (Global)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={topIngredients.slice(0, 8)}
+                      layout="vertical"
+                      margin={{ top: 0, right: 20, bottom: 0, left: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                      <XAxis type="number" tickFormatter={(v) => `R$${v}`} />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        width={120}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <Tooltip
+                        formatter={(value: number) => [`R$ ${value.toFixed(2)}`, 'Custo total']}
+                      />
+                      <Bar dataKey="totalCost" radius={[0, 4, 4, 0]}>
+                        {topIngredients.slice(0, 8).map((_, index) => (
+                          <Cell
+                            key={index}
+                            fill={index < 3 ? '#ef4444' : index < 6 ? '#f59e0b' : '#3b82f6'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-3">
+                  {topIngredients.slice(0, 5).map((item, index) => (
+                    <div key={item.ingredientId} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold text-muted-foreground w-5">
+                          {index + 1}.
+                        </span>
+                        <div>
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {item.recipeCount} receita{item.recipeCount > 1 ? 's' : ''} · {item.percentage}%
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold">R$ {item.totalCost.toFixed(2)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </>
   )

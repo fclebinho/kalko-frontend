@@ -30,6 +30,7 @@ import { ArrowLeft, Clock, Package, DollarSign, TrendingUp, AlertCircle, AlertTr
 import { toast } from 'sonner'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { PriceCalculator } from '@/components/price-calculator'
+import { PriceHistoryChart } from '@/components/price-history-chart'
 
 interface RecipeDetails {
   id: string
@@ -492,6 +493,16 @@ export default function RecipeDetailsPage() {
             />
           </div>
         )}
+
+        {/* Price History */}
+        <div className="mb-8">
+          <PriceHistoryChart
+            entityType="recipe"
+            entityId={id}
+            title="Histórico de Custos e Preços"
+            fields={['unitCost', 'totalCost', 'sellingPrice']}
+          />
+        </div>
 
         {/* Actions */}
         <div className="flex gap-4">

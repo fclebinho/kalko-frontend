@@ -22,7 +22,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { recipesApi, Recipe } from '@/lib/api'
-import { Search, ArrowUpDown, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Search, ArrowUpDown, AlertCircle, AlertTriangle, CheckCircle, Download } from 'lucide-react'
+import { generatePriceListPdf } from '@/lib/generate-price-list-pdf'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -148,9 +149,19 @@ export default function PriceListPage() {
     <>
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Lista de Preços</h1>
-          <p className="text-muted-foreground mt-1">Visão consolidada de custos, preços e margens</p>
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Lista de Preços</h1>
+            <p className="text-muted-foreground mt-1">Visão consolidada de custos, preços e margens</p>
+          </div>
+          <Button
+            onClick={() => generatePriceListPdf({ recipes: sortedRecipes })}
+            disabled={sortedRecipes.length === 0}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Exportar PDF
+          </Button>
         </div>
 
         {/* Summary Cards */}

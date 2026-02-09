@@ -156,6 +156,25 @@ export interface DashboardData {
   }>
 }
 
+// Types - Price History
+export interface PriceHistoryEntry {
+  id: string
+  entityType: string
+  entityId: string
+  field: string
+  oldValue: number
+  newValue: number
+  createdAt: string
+}
+
+// API Methods - History
+export const historyApi = {
+  getHistory: (entityType: string, entityId: string, field?: string) =>
+    api.get<{ data: PriceHistoryEntry[] }>(`/history/${entityType}/${entityId}`, {
+      params: field ? { field } : undefined,
+    }),
+}
+
 // API Methods - Ingredients
 export const ingredientsApi = {
   list: (params?: { page?: number; limit?: number; search?: string }) =>
@@ -235,6 +254,23 @@ export const costsApi = {
 export const dashboardApi = {
   get: () =>
     api.get<DashboardData>('/dashboard')
+}
+
+// Types - Analytics
+export interface TopIngredient {
+  ingredientId: string
+  name: string
+  unit: string
+  totalCost: number
+  recipeCount: number
+  percentage: number
+  recipes: Array<{ id: string; name: string; cost: number }>
+}
+
+// API Methods - Analytics
+export const analyticsApi = {
+  getTopIngredients: () =>
+    api.get<{ data: TopIngredient[] }>('/analytics/top-ingredients'),
 }
 
 // API Methods - Billing
