@@ -27,6 +27,7 @@ interface RecipeDetails {
   description?: string
   prepTime: number
   yield: number
+  yieldUnit?: string
   totalCost?: number
   unitCost?: number
   suggestedPrice?: number
@@ -34,23 +35,34 @@ interface RecipeDetails {
   margin?: number
   ingredients: Array<{
     id: string
-    ingredient: {
+    ingredientId?: string
+    subRecipeId?: string
+    ingredient?: {
       id: string
       name: string
       unit: string
+    }
+    subRecipe?: {
+      id: string
+      name: string
+      unitCost?: number
+      yield: number
+      yieldUnit?: string
     }
     quantity: number
   }>
   calculations?: {
     breakdown: {
       ingredients: Array<{
-        ingredientId: string
+        ingredientId?: string
+        subRecipeId?: string
         name: string
         quantity: number
         unit: string
         costPerUnit: number
         totalCost: number
         percentage: number
+        isSubRecipe: boolean
       }>
       ingredientsCost: number
       laborCost: number
@@ -196,7 +208,7 @@ export default function RecipeDetailsPage() {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{recipe.yield} un</div>
+              <div className="text-2xl font-bold">{recipe.yield} {recipe.yieldUnit || 'un'}</div>
             </CardContent>
           </Card>
 
@@ -381,13 +393,31 @@ export default function RecipeDetailsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {calculations.breakdown.ingredients.map((ing) => (
-                    <TableRow key={ing.ingredientId}>
+                  {calculations.breakdown.ingredients.map((ing, idx) => (
+                    <TableRow key={ing.ingredientId || ing.subRecipeId || idx}>
                       <TableCell className="font-medium">
-                        {ing.name}
-                        {ing.name === calculations.mostExpensiveIngredient.name && (
-                          <Badge className="ml-2" variant="secondary">Mais Caro</Badge>
-                        )}
+                        <span className="flex items-center gap-2">
+                          {ing.isSubRecipe && ing.subRecipeId ? (
+                            <a
+                              href={`/recipes/${ing.subRecipeId}`}
+                              className="text-primary hover:underline cursor-pointer"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                router.push(`/recipes/${ing.subRecipeId}`)
+                              }}
+                            >
+                              {ing.name}
+                            </a>
+                          ) : (
+                            ing.name
+                          )}
+                          {ing.isSubRecipe && (
+                            <Badge variant="outline" className="text-xs">Sub-receita</Badge>
+                          )}
+                          {ing.name === calculations.mostExpensiveIngredient.name && (
+                            <Badge className="ml-1" variant="secondary">Mais Caro</Badge>
+                          )}
+                        </span>
                       </TableCell>
                       <TableCell>
                         {ing.quantity} {ing.unit}

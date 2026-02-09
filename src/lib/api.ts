@@ -88,6 +88,7 @@ export interface Recipe {
   description?: string
   prepTime: number
   yield: number
+  yieldUnit?: string
   totalCost?: number
   unitCost?: number
   suggestedPrice?: number
@@ -100,10 +101,12 @@ export interface Recipe {
 
 export interface RecipeIngredient {
   id: string
-  ingredientId: string
+  ingredientId?: string
+  subRecipeId?: string
   quantity: number
   calculatedCost?: number
-  ingredient: Ingredient
+  ingredient?: Ingredient
+  subRecipe?: { id: string; name: string; unitCost?: number; yield: number; yieldUnit?: string }
 }
 
 export interface FixedCost {
@@ -189,6 +192,9 @@ export const recipesApi = {
 
   getCostBreakdown: (id: string) =>
     api.get(`/recipes/${id}/cost-breakdown`),
+
+  getUsedIn: (id: string) =>
+    api.get<{ data: Array<{ id: string; name: string }> }>(`/recipes/${id}/used-in`),
 
   delete: (id: string) =>
     api.delete(`/recipes/${id}`)

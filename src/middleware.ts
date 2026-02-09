@@ -1,12 +1,12 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 // Define rotas públicas (que não precisam de autenticação)
+// Todas as rotas /api/* são públicas no middleware pois a autenticação
+// é feita pelo backend via o proxy route
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
-  '/api/webhooks(.*)',
-  '/api/health',
-  '/api/config',
+  '/api(.*)',
 ])
 
 export default clerkMiddleware(async (auth, req) => {

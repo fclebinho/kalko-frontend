@@ -9,16 +9,25 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { recipesApi } from '@/lib/api'
 import { ArrowLeft, ArrowRight, Check, ChefHat, Package, DollarSign } from 'lucide-react'
 import { toast } from 'sonner'
 import { IngredientSelector } from '@/components/ingredient-selector'
 
 interface RecipeIngredient {
-  ingredientId: string
+  ingredientId?: string
+  subRecipeId?: string
   ingredientName: string
   quantity: number
   unit: string
+  isSubRecipe: boolean
 }
 
 const STEPS = [
@@ -37,6 +46,7 @@ export default function NewRecipePage() {
   const [description, setDescription] = useState('')
   const [prepTime, setPrepTime] = useState(0)
   const [yieldAmount, setYieldAmount] = useState(1)
+  const [yieldUnit, setYieldUnit] = useState('un')
 
   // Step 2
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([])
@@ -75,8 +85,10 @@ export default function NewRecipePage() {
         description: description || undefined,
         prepTime,
         yield: yieldAmount,
+        yieldUnit,
         ingredients: ingredients.map(ing => ({
-          ingredientId: ing.ingredientId,
+          ...(ing.ingredientId ? { ingredientId: ing.ingredientId } : {}),
+          ...(ing.subRecipeId ? { subRecipeId: ing.subRecipeId } : {}),
           quantity: ing.quantity
         }))
       }
@@ -220,15 +232,31 @@ export default function NewRecipePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="yield">Rendimento (unidades) *</Label>
-                    <Input
-                      id="yield"
-                      type="number"
-                      value={yieldAmount || ''}
-                      onChange={(e) => setYieldAmount(parseInt(e.target.value) || 1)}
-                      placeholder="10"
-                      required
-                    />
+                    <Label htmlFor="yield">Rendimento *</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="yield"
+                        type="number"
+                        step={yieldUnit === 'un' ? '1' : '0.01'}
+                        value={yieldAmount || ''}
+                        onChange={(e) => setYieldAmount(parseFloat(e.target.value) || 1)}
+                        placeholder="10"
+                        className="flex-1"
+                        required
+                      />
+                      <Select value={yieldUnit} onValueChange={setYieldUnit}>
+                        <SelectTrigger className="w-[130px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="g">Gramas (g)</SelectItem>
+                          <SelectItem value="kg">Quilogramas (kg)</SelectItem>
+                          <SelectItem value="ml">Mililitros (ml)</SelectItem>
+                          <SelectItem value="l">Litros (l)</SelectItem>
+                          <SelectItem value="un">Unidade (un)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -246,7 +274,12 @@ export default function NewRecipePage() {
                       {ingredients.map((ing, index) => (
                         <div key={index} className="flex items-center gap-3 p-3 border rounded-md">
                           <div className="flex-1">
-                            <div className="font-medium">{ing.ingredientName}</div>
+                            <div className="font-medium flex items-center gap-2">
+                              {ing.ingredientName}
+                              {ing.isSubRecipe && (
+                                <Badge variant="secondary" className="text-xs">Sub-receita</Badge>
+                              )}
+                            </div>
                           </div>
                           <Input
                             type="number"
@@ -315,7 +348,7 @@ export default function NewRecipePage() {
                     </div>
                     <div className="flex justify-between">
                       <span>Rendimento:</span>
-                      <span className="font-medium">{yieldAmount} un</span>
+                      <span className="font-medium">{yieldAmount} {yieldUnit}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Ingredientes:</span>

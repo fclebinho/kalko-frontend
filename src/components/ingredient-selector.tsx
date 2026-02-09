@@ -17,59 +17,148 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { ingredientsApi, Ingredient } from '@/lib/api'
+import { ingredientsApi, recipesApi, Ingredient, Recipe } from '@/lib/api'
 import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+type TabType = 'ingredient' | 'subRecipe'
+
 interface IngredientSelectorProps {
-  onAdd: (ingredient: {
-    ingredientId: string
+  onAdd: (item: {
+    ingredientId?: string
+    subRecipeId?: string
     ingredientName: string
     quantity: number
     unit: string
+    isSubRecipe: boolean
   }) => void
+  excludeRecipeId?: string
 }
 
-export function IngredientSelector({ onAdd }: IngredientSelectorProps) {
+export function IngredientSelector({ onAdd, excludeRecipeId }: IngredientSelectorProps) {
+  const [activeTab, setActiveTab] = useState<TabType>('ingredient')
   const [open, setOpen] = useState(false)
+
+  // Ingredient state
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
   const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null)
+
+  // Sub-recipe state
+  const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
+
   const [quantity, setQuantity] = useState<number>(0)
 
   useEffect(() => {
     loadIngredients()
+    loadRecipes()
   }, [])
 
   const loadIngredients = async () => {
     try {
-      const response = await ingredientsApi.list()
+      const response = await ingredientsApi.list({ limit: 200 })
       setIngredients(response.data.data)
     } catch (error) {
       console.error('Erro ao carregar ingredientes:', error)
     }
   }
 
+  const loadRecipes = async () => {
+    try {
+      const response = await recipesApi.list({ limit: 200 })
+      setRecipes(response.data.data)
+    } catch (error) {
+      console.error('Erro ao carregar receitas:', error)
+    }
+  }
+
+  const availableRecipes = recipes.filter(r => r.id !== excludeRecipeId)
+
   const handleAdd = () => {
-    if (!selectedIngredient || !quantity || quantity <= 0) {
-      return
+    if (activeTab === 'ingredient') {
+      if (!selectedIngredient || !quantity || quantity <= 0) return
+
+      onAdd({
+        ingredientId: selectedIngredient.id,
+        ingredientName: selectedIngredient.name,
+        quantity,
+        unit: selectedIngredient.unit,
+        isSubRecipe: false
+      })
+
+      setSelectedIngredient(null)
+    } else {
+      if (!selectedRecipe || !quantity || quantity <= 0) return
+
+      onAdd({
+        subRecipeId: selectedRecipe.id,
+        ingredientName: selectedRecipe.name,
+        quantity,
+        unit: selectedRecipe.yieldUnit || 'un',
+        isSubRecipe: true
+      })
+
+      setSelectedRecipe(null)
     }
 
-    onAdd({
-      ingredientId: selectedIngredient.id,
-      ingredientName: selectedIngredient.name,
-      quantity,
-      unit: selectedIngredient.unit
-    })
-
-    // Reset
-    setSelectedIngredient(null)
     setQuantity(0)
   }
 
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab)
+    setSelectedIngredient(null)
+    setSelectedRecipe(null)
+    setQuantity(0)
+    setOpen(false)
+  }
+
+  const isValid = activeTab === 'ingredient'
+    ? !!selectedIngredient && quantity > 0
+    : !!selectedRecipe && quantity > 0
+
+  const estimatedCost = activeTab === 'ingredient'
+    ? selectedIngredient && quantity > 0
+      ? selectedIngredient.costPerUnit * quantity
+      : null
+    : selectedRecipe?.unitCost && quantity > 0
+      ? selectedRecipe.unitCost * quantity
+      : null
+
   return (
     <div className="space-y-4 p-4 border rounded-md bg-muted/50">
+      {/* Tab buttons */}
+      <div className="flex gap-1 p-1 bg-muted rounded-lg">
+        <button
+          type="button"
+          onClick={() => handleTabChange('ingredient')}
+          className={cn(
+            "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+            activeTab === 'ingredient'
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Ingredientes
+        </button>
+        <button
+          type="button"
+          onClick={() => handleTabChange('subRecipe')}
+          className={cn(
+            "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+            activeTab === 'subRecipe'
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Sub-Receitas
+        </button>
+      </div>
+
+      {/* Selector */}
       <div>
-        <Label>Selecione um Ingrediente</Label>
+        <Label>
+          {activeTab === 'ingredient' ? 'Selecione um Ingrediente' : 'Selecione uma Receita'}
+        </Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -78,41 +167,71 @@ export function IngredientSelector({ onAdd }: IngredientSelectorProps) {
               aria-expanded={open}
               className="w-full justify-between"
             >
-              {selectedIngredient
-                ? selectedIngredient.name
-                : "Buscar ingrediente..."}
+              {activeTab === 'ingredient'
+                ? (selectedIngredient?.name || "Buscar ingrediente...")
+                : (selectedRecipe?.name || "Buscar receita...")}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-full p-0">
             <Command>
-              <CommandInput placeholder="Buscar ingrediente..." />
+              <CommandInput
+                placeholder={activeTab === 'ingredient' ? "Buscar ingrediente..." : "Buscar receita..."}
+              />
               <CommandList>
-                <CommandEmpty>Nenhum ingrediente encontrado.</CommandEmpty>
+                <CommandEmpty>
+                  {activeTab === 'ingredient' ? 'Nenhum ingrediente encontrado.' : 'Nenhuma receita encontrada.'}
+                </CommandEmpty>
                 <CommandGroup>
-                  {ingredients.map((ingredient) => (
-                    <CommandItem
-                      key={ingredient.id}
-                      value={ingredient.name}
-                      onSelect={() => {
-                        setSelectedIngredient(ingredient)
-                        setOpen(false)
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedIngredient?.id === ingredient.id ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      <div>
-                        <div>{ingredient.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          R$ {ingredient.costPerUnit.toFixed(4)}/{ingredient.unit}
-                        </div>
-                      </div>
-                    </CommandItem>
-                  ))}
+                  {activeTab === 'ingredient'
+                    ? ingredients.map((ingredient) => (
+                        <CommandItem
+                          key={ingredient.id}
+                          value={ingredient.name}
+                          onSelect={() => {
+                            setSelectedIngredient(ingredient)
+                            setOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedIngredient?.id === ingredient.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div>
+                            <div>{ingredient.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              R$ {ingredient.costPerUnit.toFixed(4)}/{ingredient.unit}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))
+                    : availableRecipes.map((recipe) => (
+                        <CommandItem
+                          key={recipe.id}
+                          value={recipe.name}
+                          onSelect={() => {
+                            setSelectedRecipe(recipe)
+                            setOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedRecipe?.id === recipe.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div>
+                            <div>{recipe.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {recipe.unitCost
+                                ? `R$ ${recipe.unitCost.toFixed(2)}/${recipe.yieldUnit || 'un'} · Rende ${recipe.yield}${recipe.yieldUnit || 'un'}`
+                                : `Rende ${recipe.yield}${recipe.yieldUnit || 'un'}`}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -120,14 +239,15 @@ export function IngredientSelector({ onAdd }: IngredientSelectorProps) {
         </Popover>
       </div>
 
-      {selectedIngredient && (
+      {/* Quantity + Unit */}
+      {(selectedIngredient || selectedRecipe) && (
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="quantity">Quantidade</Label>
             <Input
               id="quantity"
               type="number"
-              step="0.01"
+              step={activeTab === 'subRecipe' ? (selectedRecipe?.yieldUnit === 'un' ? '1' : '0.01') : '0.01'}
               value={quantity || ''}
               onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
               placeholder="0"
@@ -137,7 +257,7 @@ export function IngredientSelector({ onAdd }: IngredientSelectorProps) {
           <div>
             <Label>Unidade</Label>
             <Input
-              value={selectedIngredient.unit}
+              value={activeTab === 'ingredient' ? (selectedIngredient?.unit || '') : (selectedRecipe?.yieldUnit || 'un')}
               disabled
               className="bg-muted"
             />
@@ -145,22 +265,23 @@ export function IngredientSelector({ onAdd }: IngredientSelectorProps) {
         </div>
       )}
 
-      {selectedIngredient && quantity > 0 && (
+      {/* Estimated cost */}
+      {estimatedCost !== null && (
         <div className="bg-background p-3 rounded-md border">
           <div className="text-sm text-muted-foreground mb-1">Custo estimado:</div>
           <div className="text-lg font-semibold">
-            R$ {(selectedIngredient.costPerUnit * quantity).toFixed(2)}
+            R$ {estimatedCost.toFixed(2)}
           </div>
         </div>
       )}
 
       <Button
         onClick={handleAdd}
-        disabled={!selectedIngredient || !quantity || quantity <= 0}
+        disabled={!isValid}
         className="w-full"
       >
         <Plus className="mr-2 h-4 w-4" />
-        Adicionar Ingrediente
+        {activeTab === 'ingredient' ? 'Adicionar Ingrediente' : 'Adicionar Sub-Receita'}
       </Button>
     </div>
   )

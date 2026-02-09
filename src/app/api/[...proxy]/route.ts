@@ -53,20 +53,22 @@ async function proxyRequest(
 ) {
   try {
     // Build backend URL
-    const path = params.proxy.join('/')
+    // Handle both /api/dashboard and /api/v1/dashboard formats
+    const rawPath = params.proxy.join('/')
+    const path = rawPath.startsWith('v1/') ? rawPath : `v1/${rawPath}`
     const searchParams = request.nextUrl.searchParams.toString()
-    const url = `${API_URL}/v1/${path}${searchParams ? `?${searchParams}` : ''}`
+    const url = `${API_URL}/${path}${searchParams ? `?${searchParams}` : ''}`
 
-    // Get headers
+    // Get headers (skip authorization - will be set below)
     const headers: Record<string, string> = {}
     request.headers.forEach((value, key) => {
-      if (key !== 'host' && key !== 'connection') {
+      if (key !== 'host' && key !== 'connection' && key !== 'authorization') {
         headers[key] = value
       }
     })
 
     // Add dev token for now (later will use Clerk)
-    headers['Authorization'] = 'Bearer token-dev'
+    headers['authorization'] = 'Bearer token-dev'
 
     // Get body for POST/PUT
     let body: string | undefined
