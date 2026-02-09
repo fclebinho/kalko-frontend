@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
-import { ArrowRight, CheckCircle2, CreditCard, AlertTriangle, ChefHat, Package } from 'lucide-react'
+import { ArrowRight, CheckCircle2, CreditCard, AlertTriangle, ChefHat, Package, Settings } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -412,6 +412,14 @@ function BillingContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Link para configuracoes */}
+      <div className="mt-6 text-center">
+        <Button variant="link" onClick={() => router.push('/settings')} className="text-muted-foreground">
+          <Settings className="mr-2 h-4 w-4" />
+          Configuracoes de notificacao
+        </Button>
+      </div>
     </div>
   )
 }

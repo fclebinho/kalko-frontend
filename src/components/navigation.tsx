@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
-import { LayoutDashboard, Package, ChefHat, DollarSign, CreditCard, Sparkles, List } from 'lucide-react'
+import { LayoutDashboard, Package, ChefHat, DollarSign, CreditCard, Sparkles, List, Calculator } from 'lucide-react'
 
 const navItems = [
   {
@@ -30,6 +30,11 @@ const navItems = [
     name: 'Preços',
     href: '/price-list',
     icon: List
+  },
+  {
+    name: 'Pedidos',
+    href: '/orders',
+    icon: Calculator
   },
   {
     name: 'Planos',

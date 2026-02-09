@@ -41,7 +41,8 @@ import {
 } from '@/components/ui/select'
 import { ingredientsApi, Ingredient } from '@/lib/api'
 import { PriceHistoryChart } from '@/components/price-history-chart'
-import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
+import { CSVImportDialog } from '@/components/csv-import-dialog'
+import { Plus, Search, Pencil, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function IngredientsPage() {
@@ -52,6 +53,7 @@ export default function IngredientsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [ingredientToDelete, setIngredientToDelete] = useState<{ id: string; name: string; usedInRecipes: number } | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     quantity: 0,
@@ -153,10 +155,16 @@ export default function IngredientsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Ingredientes</h1>
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Ingrediente
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Importar CSV
+            </Button>
+            <Button onClick={() => handleOpenDialog()}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Ingrediente
+            </Button>
+          </div>
         </div>
 
         <Card className="mb-8">
@@ -426,6 +434,13 @@ export default function IngredientsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* CSV Import Dialog */}
+      <CSVImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImportComplete={loadIngredients}
+      />
     </>
   )
 }

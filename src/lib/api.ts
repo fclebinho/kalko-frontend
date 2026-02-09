@@ -175,6 +175,21 @@ export const historyApi = {
     }),
 }
 
+// Types - Bulk Import
+export interface BulkImportReport {
+  report: {
+    total: number
+    created: number
+    updated: number
+    skipped: number
+  }
+  details: {
+    created: Array<{ name: string; id: string }>
+    updated: Array<{ name: string; id: string }>
+    skipped: Array<{ name: string; reason: string }>
+  }
+}
+
 // API Methods - Ingredients
 export const ingredientsApi = {
   list: (params?: { page?: number; limit?: number; search?: string }) =>
@@ -190,7 +205,12 @@ export const ingredientsApi = {
     api.put<Ingredient>(`/ingredients/${id}`, data),
 
   delete: (id: string) =>
-    api.delete(`/ingredients/${id}`)
+    api.delete(`/ingredients/${id}`),
+
+  bulkCreate: (data: {
+    ingredients: Array<{ name: string; quantity: number; cost: number; unit: string; category?: string; supplier?: string }>
+    onDuplicate: 'skip' | 'update'
+  }) => api.post<BulkImportReport>('/ingredients/bulk', data),
 }
 
 // API Methods - Recipes
@@ -332,4 +352,21 @@ export const billingApi = {
   // Reativar assinatura
   reactivateSubscription: () =>
     api.post<{ success: boolean; message: string }>('/billing/reactivate'),
+}
+
+// Types - Settings
+export interface EmailPreferences {
+  id: string
+  priceAlerts: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+// API Methods - Settings
+export const settingsApi = {
+  getEmailPreferences: () =>
+    api.get<EmailPreferences>('/settings/email-preferences'),
+
+  updateEmailPreferences: (data: { priceAlerts: boolean }) =>
+    api.put<EmailPreferences>('/settings/email-preferences', data),
 }
