@@ -18,9 +18,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { billingApi, Subscription, settingsApi } from '@/lib/api'
+import { billingApi, Subscription, Plan, settingsApi } from '@/lib/api'
 import { OnboardingWizard } from '@/components/onboarding-wizard'
-import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, AlertTriangle, ChefHat, Package, GraduationCap } from 'lucide-react'
+import { PricingTable } from '@/components/pricing-table'
+import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, AlertTriangle, ChefHat, Package, GraduationCap, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -28,6 +29,10 @@ import { ptBR } from 'date-fns/locale'
 function SettingsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // Tab state from URL
+  const initialTab = searchParams?.get('tab') || 'geral'
+  const [activeTab, setActiveTab] = useState(initialTab)
 
   // Settings state
   const [priceAlerts, setPriceAlerts] = useState(true)
@@ -45,6 +50,11 @@ function SettingsContent() {
   const [cancelFeedback, setCancelFeedback] = useState('')
   const [canceling, setCanceling] = useState(false)
 
+  // Plans state
+  const [plans, setPlans] = useState<Plan[]>([])
+  const [plansLoading, setPlansLoading] = useState(true)
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null)
+
   useEffect(() => {
     // Load settings
     settingsApi
@@ -56,10 +66,17 @@ function SettingsContent() {
     // Load subscription
     loadSubscription()
 
+    // Load plans
+    billingApi
+      .getPlans()
+      .then((res) => setPlans(res.data.plans))
+      .catch(() => {})
+      .finally(() => setPlansLoading(false))
+
     // Checkout success redirect
     if (searchParams?.get('success') === 'true') {
       toast.success('Upgrade realizado com sucesso!')
-      router.replace('/settings')
+      router.replace('/settings?tab=assinatura')
     }
   }, [searchParams])
 
@@ -132,6 +149,27 @@ function SettingsContent() {
     }
   }
 
+  async function handleSelectPlan(planId: string) {
+    try {
+      setProcessingPlan(planId)
+      const response = await billingApi.createCheckout(planId)
+      if (response.data.url) {
+        window.location.href = response.data.url
+      } else {
+        toast.error('Erro: URL de checkout não disponível')
+        setProcessingPlan(null)
+      }
+    } catch (error: any) {
+      toast.error(`Erro ao processar upgrade: ${error.response?.data?.error || error.message}`)
+      setProcessingPlan(null)
+    }
+  }
+
+  function handleTabChange(value: string) {
+    setActiveTab(value)
+    router.replace(`/settings?tab=${value}`, { scroll: false })
+  }
+
   // Billing computed values
   const isPro = subscription ? subscription.plan !== 'free' : false
   const planName = subscription?.planInfo.name || ''
@@ -157,9 +195,13 @@ function SettingsContent() {
     <div className="max-w-4xl">
       <PageHeader title="Configurações" description="Gerencie suas preferências e assinatura" />
 
-      <Tabs defaultValue="geral">
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="geral">Geral</TabsTrigger>
+          <TabsTrigger value="planos">
+            <Sparkles className="mr-1 h-3.5 w-3.5" />
+            Planos
+          </TabsTrigger>
           <TabsTrigger value="assinatura">Assinatura</TabsTrigger>
         </TabsList>
 
@@ -237,6 +279,33 @@ function SettingsContent() {
             onComplete={() => setShowOnboarding(false)}
             allowClose
           />
+        </TabsContent>
+
+        {/* Tab Planos */}
+        <TabsContent value="planos" className="mt-6">
+          {plansLoading ? (
+            <div className="text-center py-8">Carregando planos...</div>
+          ) : (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">Escolha seu Plano</h2>
+                <p className="text-muted-foreground">
+                  Comece gratuitamente e faça upgrade quando precisar de mais recursos.
+                </p>
+              </div>
+
+              <PricingTable
+                plans={plans}
+                currentPlan={subscription?.plan}
+                onSelectPlan={handleSelectPlan}
+                loading={processingPlan}
+              />
+
+              <p className="text-xs text-center text-muted-foreground">
+                Todos os planos pagos incluem período de teste de 7 dias. Cancele a qualquer momento.
+              </p>
+            </div>
+          )}
         </TabsContent>
 
         {/* Tab Assinatura */}
@@ -382,7 +451,7 @@ function SettingsContent() {
                     {(recipesPercentage >= 80 || ingredientsPercentage >= 80) && (
                       <Button
                         className="w-full"
-                        onClick={() => router.push('/pricing')}
+                        onClick={() => handleTabChange('planos')}
                       >
                         <ArrowRight className="mr-2 h-4 w-4" />
                         Fazer Upgrade
@@ -404,7 +473,7 @@ function SettingsContent() {
                   {!isPro && (
                     <Button
                       className="w-full"
-                      onClick={() => router.push('/pricing')}
+                      onClick={() => handleTabChange('planos')}
                     >
                       <ArrowRight className="mr-2 h-4 w-4" />
                       Fazer Upgrade para Pro

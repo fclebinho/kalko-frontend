@@ -38,6 +38,8 @@ export default function RecipesPage() {
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
+  const [duplicateTarget, setDuplicateTarget] = useState<{ id: string; name: string } | null>(null)
 
   useEffect(() => {
     setPage(1)
@@ -81,13 +83,23 @@ export default function RecipesPage() {
     }
   }
 
-  const handleDuplicate = async (id: string, name: string) => {
+  const handleDuplicate = (id: string, name: string) => {
+    setDuplicateTarget({ id, name })
+    setDuplicateDialogOpen(true)
+  }
+
+  const confirmDuplicate = async () => {
+    if (!duplicateTarget) return
+
     try {
-      await recipesApi.duplicate(id)
-      toast.success(`Receita "${name}" duplicada com sucesso`)
+      await recipesApi.duplicate(duplicateTarget.id)
+      toast.success(`Receita "${duplicateTarget.name}" duplicada com sucesso`)
       loadRecipes()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao duplicar receita')
+    } finally {
+      setDuplicateDialogOpen(false)
+      setDuplicateTarget(null)
     }
   }
 
@@ -210,6 +222,24 @@ export default function RecipesPage() {
             onPageChange={setPage}
           />
         )}
+
+      {/* Duplicate Confirmation */}
+      <AlertDialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicar receita</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja duplicar a receita &quot;{duplicateTarget?.name}&quot;? Uma cópia será criada com todos os ingredientes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDuplicate}>
+              Duplicar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

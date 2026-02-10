@@ -85,7 +85,7 @@ export function PlanUsage({ type, current }: PlanUsageProps) {
             <Button
               size="sm"
               className="h-7 text-xs"
-              onClick={() => router.push('/pricing')}
+              onClick={() => router.push('/settings?tab=planos')}
             >
               <ArrowUp className="mr-1 h-3 w-3" />
               Fazer Upgrade

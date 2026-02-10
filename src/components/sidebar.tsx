@@ -10,7 +10,6 @@ import {
   DollarSign,
   List,
   Calculator,
-  Sparkles,
   Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -22,7 +21,6 @@ const navItems = [
   { name: 'Custos', href: '/costs', icon: DollarSign },
   { name: 'Precos', href: '/price-list', icon: List },
   { name: 'Pedidos', href: '/orders', icon: Calculator },
-  { name: 'Planos', href: '/pricing', icon: Sparkles },
   { name: 'Configuracoes', href: '/settings', icon: Settings },
 ]
 
