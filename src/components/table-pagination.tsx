@@ -18,8 +18,6 @@ interface TablePaginationProps {
 }
 
 export function TablePagination({ page, totalPages, total, onPageChange }: TablePaginationProps) {
-  if (totalPages <= 1) return null
-
   const getVisiblePages = () => {
     const pages: (number | 'ellipsis')[] = []
 
@@ -55,41 +53,43 @@ export function TablePagination({ page, totalPages, total, onPageChange }: Table
       <p className="text-sm text-muted-foreground">
         {total} {total === 1 ? 'item' : 'itens'}
       </p>
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => page > 1 && onPageChange(page - 1)}
-              className={page <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-            />
-          </PaginationItem>
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => page > 1 && onPageChange(page - 1)}
+                className={page <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              />
+            </PaginationItem>
 
-          {getVisiblePages().map((p, i) =>
-            p === 'ellipsis' ? (
-              <PaginationItem key={`ellipsis-${i}`}>
-                <PaginationEllipsis />
-              </PaginationItem>
-            ) : (
-              <PaginationItem key={p}>
-                <PaginationLink
-                  isActive={p === page}
-                  onClick={() => onPageChange(p)}
-                  className="cursor-pointer"
-                >
-                  {p}
-                </PaginationLink>
-              </PaginationItem>
-            )
-          )}
+            {getVisiblePages().map((p, i) =>
+              p === 'ellipsis' ? (
+                <PaginationItem key={`ellipsis-${i}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    isActive={p === page}
+                    onClick={() => onPageChange(p)}
+                    className="cursor-pointer"
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
 
-          <PaginationItem>
-            <PaginationNext
-              onClick={() => page < totalPages && onPageChange(page + 1)}
-              className={page >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => page < totalPages && onPageChange(page + 1)}
+                className={page >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   )
 }
