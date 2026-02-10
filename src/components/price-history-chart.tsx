@@ -48,12 +48,13 @@ export function PriceHistoryChart({
 
   useEffect(() => {
     if (!entityId) return
-    setLoading(true)
+    let cancelled = false
     historyApi
       .getHistory(entityType, entityId)
-      .then((res) => setEntries(res.data.data))
-      .catch(() => setEntries([]))
-      .finally(() => setLoading(false))
+      .then((res) => { if (!cancelled) setEntries(res.data.data) })
+      .catch(() => { if (!cancelled) setEntries([]) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [entityType, entityId])
 
   if (loading) return null

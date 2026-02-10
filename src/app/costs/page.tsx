@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { PageHeader } from '@/components/page-header'
 import {
   Dialog,
   DialogContent,
@@ -151,7 +152,7 @@ export default function CostsPage() {
     <>
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Custos Operacionais</h1>
+        <PageHeader title="Custos Operacionais" description="Configure custos fixos, variáveis e horas de trabalho" />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

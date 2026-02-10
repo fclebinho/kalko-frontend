@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { billingApi, Subscription } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/components/page-header'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -140,12 +141,7 @@ function BillingContent() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Gerenciar Assinatura</h1>
-        <p className="text-muted-foreground mt-2">
-          Gerencie seu plano e informações de pagamento
-        </p>
-      </div>
+      <PageHeader title="Gerenciar Assinatura" description="Gerencie seu plano e informações de pagamento" />
 
       <div className="grid gap-6">
         {/* Plano Atual */}

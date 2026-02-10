@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/components/page-header'
+import { SearchBar } from '@/components/search-bar'
+import { DataTable } from '@/components/data-table'
 import {
   Table,
   TableBody,
@@ -42,7 +44,7 @@ import {
 import { ingredientsApi, Ingredient } from '@/lib/api'
 import { PriceHistoryChart } from '@/components/price-history-chart'
 import { CSVImportDialog } from '@/components/csv-import-dialog'
-import { Plus, Search, Pencil, Trash2, Upload } from 'lucide-react'
+import { Plus, Pencil, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function IngredientsPage() {
@@ -153,58 +155,30 @@ export default function IngredientsPage() {
     <>
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Ingredientes</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" />
-              Importar CSV
-            </Button>
-            <Button onClick={() => handleOpenDialog()}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Ingrediente
-            </Button>
-          </div>
-        </div>
+        <PageHeader title="Ingredientes" description="Gerencie os ingredientes e seus custos">
+          <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+            <Upload className="mr-2 h-4 w-4" />
+            Importar CSV
+          </Button>
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Ingrediente
+          </Button>
+        </PageHeader>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Buscar</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome..." />
 
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-muted-foreground">Carregando...</div>
-              </div>
-            ) : ingredients.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-                <p>Nenhum ingrediente encontrado</p>
-                <Button
-                  variant="link"
-                  onClick={() => handleOpenDialog()}
-                  className="mt-2"
-                >
-                  Criar primeiro ingrediente
-                </Button>
-              </div>
-            ) : (
-              <Table>
+        <DataTable
+          loading={loading}
+          empty={ingredients.length === 0}
+          emptyMessage="Nenhum ingrediente encontrado"
+          emptyAction={
+            <Button variant="link" onClick={() => handleOpenDialog()} className="mt-2">
+              Criar primeiro ingrediente
+            </Button>
+          }
+        >
+          <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
@@ -257,9 +231,7 @@ export default function IngredientsPage() {
                   ))}
                 </TableBody>
               </Table>
-            )}
-          </CardContent>
-        </Card>
+        </DataTable>
       </div>
 
       {/* Create/Edit Dialog */}

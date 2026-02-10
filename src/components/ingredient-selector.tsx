@@ -50,27 +50,14 @@ export function IngredientSelector({ onAdd, excludeRecipeId }: IngredientSelecto
   const [quantity, setQuantity] = useState<number>(0)
 
   useEffect(() => {
-    loadIngredients()
-    loadRecipes()
+    ingredientsApi.list({ limit: 200 })
+      .then((response) => setIngredients(response.data.data))
+      .catch((err) => console.error('Erro ao carregar ingredientes:', err))
+
+    recipesApi.list({ limit: 200 })
+      .then((response) => setRecipes(response.data.data))
+      .catch((err) => console.error('Erro ao carregar receitas:', err))
   }, [])
-
-  const loadIngredients = async () => {
-    try {
-      const response = await ingredientsApi.list({ limit: 200 })
-      setIngredients(response.data.data)
-    } catch (error) {
-      console.error('Erro ao carregar ingredientes:', error)
-    }
-  }
-
-  const loadRecipes = async () => {
-    try {
-      const response = await recipesApi.list({ limit: 200 })
-      setRecipes(response.data.data)
-    } catch (error) {
-      console.error('Erro ao carregar receitas:', error)
-    }
-  }
 
   const availableRecipes = recipes.filter(r => r.id !== excludeRecipeId)
 

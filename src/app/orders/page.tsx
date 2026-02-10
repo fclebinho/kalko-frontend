@@ -5,6 +5,7 @@ import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/components/page-header'
 import {
   Table,
   TableBody,
@@ -188,19 +189,16 @@ export default function OrdersPage() {
     <>
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Calculadora de Pedidos</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleClearOrder} disabled={items.length === 0}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Limpar
-            </Button>
-            <Button onClick={handleExportPdf} disabled={items.length === 0}>
-              <Download className="mr-2 h-4 w-4" />
-              Exportar PDF
-            </Button>
-          </div>
-        </div>
+        <PageHeader title="Calculadora de Pedidos" description="Monte pedidos e calcule custos, preços e lucro">
+          <Button variant="outline" onClick={handleClearOrder} disabled={items.length === 0}>
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Limpar
+          </Button>
+          <Button onClick={handleExportPdf} disabled={items.length === 0}>
+            <Download className="mr-2 h-4 w-4" />
+            Exportar PDF
+          </Button>
+        </PageHeader>
 
         {/* Add Item */}
         <Card className="mb-6">

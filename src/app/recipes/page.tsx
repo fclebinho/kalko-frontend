@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/components/page-header'
+import { SearchBar } from '@/components/search-bar'
+import { DataTable } from '@/components/data-table'
 import {
   Table,
   TableBody,
@@ -24,7 +25,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { recipesApi, Recipe } from '@/lib/api'
-import { Plus, Search, Eye, Trash2, Copy } from 'lucide-react'
+import { Plus, Eye, Trash2, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -94,52 +95,30 @@ export default function RecipesPage() {
     <>
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Receitas</h1>
+        <PageHeader title="Receitas" description="Crie e gerencie receitas com cálculo automático de custos">
           <Link href="/recipes/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Nova Receita
             </Button>
           </Link>
-        </div>
+        </PageHeader>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Buscar</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome..." />
 
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-muted-foreground">Carregando...</div>
-              </div>
-            ) : recipes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-                <p>Nenhuma receita encontrada</p>
-                <Link href="/recipes/new">
-                  <Button variant="link" className="mt-2">
-                    Criar primeira receita
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <Table>
+        <DataTable
+          loading={loading}
+          empty={recipes.length === 0}
+          emptyMessage="Nenhuma receita encontrada"
+          emptyAction={
+            <Link href="/recipes/new">
+              <Button variant="link" className="mt-2">
+                Criar primeira receita
+              </Button>
+            </Link>
+          }
+        >
+          <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
@@ -207,9 +186,7 @@ export default function RecipesPage() {
                   ))}
                 </TableBody>
               </Table>
-            )}
-          </CardContent>
-        </Card>
+        </DataTable>
       </div>
 
       {/* Delete Confirmation */}

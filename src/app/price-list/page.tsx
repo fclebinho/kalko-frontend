@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
+import { PageHeader } from '@/components/page-header'
+import { SearchBar } from '@/components/search-bar'
+import { DataTable } from '@/components/data-table'
 import {
   Table,
   TableBody,
@@ -22,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { recipesApi, Recipe } from '@/lib/api'
-import { Search, ArrowUpDown, AlertCircle, AlertTriangle, CheckCircle, Download } from 'lucide-react'
+import { ArrowUpDown, AlertCircle, AlertTriangle, CheckCircle, Download } from 'lucide-react'
 import { generatePriceListPdf } from '@/lib/generate-price-list-pdf'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -149,11 +151,7 @@ export default function PriceListPage() {
     <>
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Lista de Preços</h1>
-            <p className="text-muted-foreground mt-1">Visão consolidada de custos, preços e margens</p>
-          </div>
+        <PageHeader title="Lista de Preços" description="Visão consolidada de custos, preços e margens">
           <Button
             onClick={() => generatePriceListPdf({ recipes: sortedRecipes })}
             disabled={sortedRecipes.length === 0}
@@ -162,7 +160,7 @@ export default function PriceListPage() {
             <Download className="h-4 w-4" />
             Exportar PDF
           </Button>
-        </div>
+        </PageHeader>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -193,46 +191,27 @@ export default function PriceListPage() {
         </div>
 
         {/* Filters */}
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <Select value={marginFilter} onValueChange={(v) => setMarginFilter(v as MarginFilter)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Filtrar por margem" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="loss">Prejuízo</SelectItem>
-                  <SelectItem value="low">Margem baixa (&lt;20%)</SelectItem>
-                  <SelectItem value="good">Boa margem (&gt;30%)</SelectItem>
-                  <SelectItem value="no-price">Sem preço</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome...">
+          <Select value={marginFilter} onValueChange={(v) => setMarginFilter(v as MarginFilter)}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrar por margem" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="loss">Prejuízo</SelectItem>
+              <SelectItem value="low">Margem baixa (&lt;20%)</SelectItem>
+              <SelectItem value="good">Boa margem (&gt;30%)</SelectItem>
+              <SelectItem value="no-price">Sem preço</SelectItem>
+            </SelectContent>
+          </Select>
+        </SearchBar>
 
         {/* Price List Table */}
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-muted-foreground">Carregando...</div>
-              </div>
-            ) : sortedRecipes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-                <p>Nenhum produto encontrado</p>
-              </div>
-            ) : (
+        <DataTable
+          loading={loading}
+          empty={sortedRecipes.length === 0}
+          emptyMessage="Nenhum produto encontrado"
+        >
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -326,9 +305,7 @@ export default function PriceListPage() {
                   })}
                 </TableBody>
               </Table>
-            )}
-          </CardContent>
-        </Card>
+        </DataTable>
       </div>
     </>
   )

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { settingsApi } from '@/lib/api'
 import { Bell, BellOff } from 'lucide-react'
@@ -39,7 +40,7 @@ export default function SettingsPage() {
     <>
       <Navigation />
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <h1 className="text-3xl font-bold mb-8">Configuracoes</h1>
+        <PageHeader title="Configurações" description="Configure suas preferências" />
 
         <Card>
           <CardHeader>
