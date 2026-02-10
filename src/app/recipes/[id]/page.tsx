@@ -31,6 +31,7 @@ import { toast } from 'sonner'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { PriceCalculator } from '@/components/price-calculator'
 import { PriceHistoryChart } from '@/components/price-history-chart'
+import { isWeightVolumeUnit } from '@/lib/utils'
 
 interface RecipeDetails {
   id: string
@@ -244,19 +245,19 @@ export default function RecipeDetailsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {recipe.yieldUnit && recipe.yieldUnit !== 'un' ? 'Custo da Receita' : 'Custo Unitário'}
+                {isWeightVolumeUnit(recipe.yieldUnit) ? 'Custo da Receita' : 'Custo Unitário'}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                R$ {(recipe.yieldUnit && recipe.yieldUnit !== 'un'
+                R$ {(isWeightVolumeUnit(recipe.yieldUnit)
                   ? (calculations?.breakdown.totalCost ?? recipe.totalCost)
                   : (calculations?.unitCost ?? recipe.unitCost)
                 )?.toFixed(2) || '0.00'}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Sugerido: R$ {(recipe.yieldUnit && recipe.yieldUnit !== 'un'
+                Sugerido: R$ {(isWeightVolumeUnit(recipe.yieldUnit)
                   ? ((calculations?.breakdown.totalCost ?? recipe.totalCost ?? 0) * 1.5)
                   : (calculations?.suggestedPrice ?? recipe.suggestedPrice)
                 )?.toFixed(2) || '0.00'}
@@ -370,10 +371,12 @@ export default function RecipeDetailsPage() {
                     <span>Custo Total:</span>
                     <span>R$ {calculations.breakdown.totalCost.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Custo Unitário:</span>
-                    <span className="font-medium">R$ {calculations.unitCost.toFixed(2)}</span>
-                  </div>
+                  {!isWeightVolumeUnit(recipe.yieldUnit) && (
+                    <div className="flex justify-between text-sm">
+                      <span>Custo Unitário:</span>
+                      <span className="font-medium">R$ {calculations.unitCost.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -486,8 +489,17 @@ export default function RecipeDetailsPage() {
         {calculations && (
           <div className="mb-8">
             <PriceCalculator
-              unitCost={calculations.unitCost}
-              suggestedPrice={calculations.suggestedPrice}
+              unitCost={
+                isWeightVolumeUnit(recipe.yieldUnit)
+                  ? (calculations.breakdown.totalCost)
+                  : calculations.unitCost
+              }
+              suggestedPrice={
+                isWeightVolumeUnit(recipe.yieldUnit)
+                  ? (calculations.breakdown.totalCost * 1.5)
+                  : calculations.suggestedPrice
+              }
+              costLabel={isWeightVolumeUnit(recipe.yieldUnit) ? 'Custo Total' : undefined}
               currentPrice={recipe.sellingPrice || undefined}
               onApplyPrice={handleApplyPrice}
             />

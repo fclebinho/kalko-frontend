@@ -28,6 +28,7 @@ import { ArrowUpDown, AlertCircle, AlertTriangle, CheckCircle, Download } from '
 import { generatePriceListPdf } from '@/lib/generate-price-list-pdf'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { isWeightVolumeUnit } from '@/lib/utils'
 
 type MarginFilter = 'all' | 'loss' | 'low' | 'good' | 'no-price'
 
@@ -91,22 +92,23 @@ export default function PriceListPage() {
   }
 
   const getDisplayCost = (recipe: Recipe) => {
-    if (recipe.yieldUnit && recipe.yieldUnit !== 'un') {
+    if (isWeightVolumeUnit(recipe.yieldUnit)) {
       return recipe.totalCost ?? recipe.unitCost ?? 0
     }
     return recipe.unitCost ?? 0
   }
 
   const getCostLabel = (recipe: Recipe) => {
-    if (recipe.yieldUnit && recipe.yieldUnit !== 'un') {
+    if (isWeightVolumeUnit(recipe.yieldUnit)) {
       return 'total'
     }
     return '/un'
   }
 
   const getProfit = (recipe: Recipe) => {
-    if (!recipe.sellingPrice || !recipe.unitCost) return null
-    return recipe.sellingPrice - recipe.unitCost
+    if (!recipe.sellingPrice) return null
+    const cost = getDisplayCost(recipe)
+    return recipe.sellingPrice - cost
   }
 
   // Filter

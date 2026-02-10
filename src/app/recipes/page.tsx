@@ -28,6 +28,7 @@ import { recipesApi, Recipe } from '@/lib/api'
 import { Plus, Eye, Trash2, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { isWeightVolumeUnit } from '@/lib/utils'
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
@@ -139,13 +140,13 @@ export default function RecipesPage() {
                       <TableCell>{recipe.prepTime} min</TableCell>
                       <TableCell>
                         <div>
-                          R$ {(recipe.yieldUnit && recipe.yieldUnit !== 'un'
+                          R$ {(isWeightVolumeUnit(recipe.yieldUnit)
                             ? (recipe.totalCost ?? recipe.unitCost)
                             : recipe.unitCost
                           )?.toFixed(2) || '0.00'}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {recipe.yieldUnit && recipe.yieldUnit !== 'un' ? 'total' : '/un'}
+                          {isWeightVolumeUnit(recipe.yieldUnit) ? 'total' : '/un'}
                         </div>
                       </TableCell>
                       <TableCell>

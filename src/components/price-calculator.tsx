@@ -12,6 +12,7 @@ interface PriceCalculatorProps {
   unitCost: number
   suggestedPrice: number
   currentPrice?: number
+  costLabel?: string
   onApplyPrice?: (price: number) => void
 }
 
@@ -19,6 +20,7 @@ export function PriceCalculator({
   unitCost,
   suggestedPrice,
   currentPrice,
+  costLabel,
   onApplyPrice,
 }: PriceCalculatorProps) {
   const [desiredMargin, setDesiredMargin] = useState(50)
@@ -75,7 +77,7 @@ export function PriceCalculator({
         {/* Informações Base */}
         <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
           <div>
-            <div className="text-sm text-muted-foreground">Custo Unitário</div>
+            <div className="text-sm text-muted-foreground">{costLabel || 'Custo Unitário'}</div>
             <div className="text-lg font-bold">R$ {unitCost.toFixed(2)}</div>
           </div>
           <div>
@@ -133,7 +135,7 @@ export function PriceCalculator({
           <div className="flex gap-2">
             <div className="flex-1">
               <Label htmlFor="targetProfit" className="text-xs">
-                Lucro por unidade (R$)
+                {costLabel ? 'Lucro desejado (R$)' : 'Lucro por unidade (R$)'}
               </Label>
               <Input
                 id="targetProfit"
