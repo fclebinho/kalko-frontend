@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/page-header'
@@ -153,9 +152,7 @@ export default function IngredientsPage() {
 
   return (
     <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
-        <PageHeader title="Ingredientes" description="Gerencie os ingredientes e seus custos">
+      <PageHeader title="Ingredientes" description="Gerencie os ingredientes e seus custos">
           <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
             <Upload className="mr-2 h-4 w-4" />
             Importar CSV
@@ -232,7 +229,6 @@ export default function IngredientsPage() {
                 </TableBody>
               </Table>
         </DataTable>
-      </div>
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

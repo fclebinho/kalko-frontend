@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageHeader } from '@/components/page-header'
@@ -151,9 +150,7 @@ export default function PriceListPage() {
 
   return (
     <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
-        <PageHeader title="Lista de Preços" description="Visão consolidada de custos, preços e margens">
+      <PageHeader title="Lista de Preços" description="Visão consolidada de custos, preços e margens">
           <Button
             onClick={() => generatePriceListPdf({ recipes: sortedRecipes })}
             disabled={sortedRecipes.length === 0}
@@ -308,7 +305,6 @@ export default function PriceListPage() {
                 </TableBody>
               </Table>
         </DataTable>
-      </div>
     </>
   )
 }

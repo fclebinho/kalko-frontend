@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -168,28 +167,18 @@ export default function RecipeDetailsPage() {
 
   if (loading) {
     return (
-      <>
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-muted-foreground">Carregando...</div>
-          </div>
-        </div>
-      </>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
     )
   }
 
   if (!recipe) {
     return (
-      <>
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>Receita não encontrada</AlertDescription>
-          </Alert>
-        </div>
-      </>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>Receita não encontrada</AlertDescription>
+      </Alert>
     )
   }
 
@@ -201,8 +190,6 @@ export default function RecipeDetailsPage() {
 
   return (
     <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
         <Button
           variant="ghost"
           onClick={() => router.push('/recipes')}
@@ -541,7 +528,6 @@ export default function RecipeDetailsPage() {
             Excluir
           </Button>
         </div>
-      </div>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

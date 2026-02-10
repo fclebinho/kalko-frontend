@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -137,22 +136,15 @@ export default function CostsPage() {
 
   if (loading) {
     return (
-      <>
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-muted-foreground">Carregando...</div>
-          </div>
-        </div>
-      </>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
     )
   }
 
   return (
     <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
-        <PageHeader title="Custos Operacionais" description="Configure custos fixos, variáveis e horas de trabalho" />
+      <PageHeader title="Custos Operacionais" description="Configure custos fixos, variáveis e horas de trabalho" />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -311,7 +303,6 @@ export default function CostsPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
 
       {/* Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

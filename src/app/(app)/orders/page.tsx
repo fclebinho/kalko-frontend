@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -174,22 +173,15 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <>
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-muted-foreground">Carregando...</div>
-          </div>
-        </div>
-      </>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
     )
   }
 
   return (
     <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
-        <PageHeader title="Calculadora de Pedidos" description="Monte pedidos e calcule custos, preços e lucro">
+      <PageHeader title="Calculadora de Pedidos" description="Monte pedidos e calcule custos, preços e lucro">
           <Button variant="outline" onClick={handleClearOrder} disabled={items.length === 0}>
             <RotateCcw className="mr-2 h-4 w-4" />
             Limpar
@@ -411,7 +403,6 @@ export default function OrdersPage() {
             </Card>
           </div>
         </div>
-      </div>
     </>
   )
 }

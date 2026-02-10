@@ -102,18 +102,14 @@ function BillingContent() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Carregando...</div>
-      </div>
+      <div className="text-center">Carregando...</div>
     )
   }
 
   if (!subscription) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="text-muted-foreground">Nenhuma assinatura encontrada</p>
-        </div>
+      <div className="text-center">
+        <p className="text-muted-foreground">Nenhuma assinatura encontrada</p>
       </div>
     )
   }
@@ -140,7 +136,7 @@ function BillingContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="max-w-4xl">
       <PageHeader title="Gerenciar Assinatura" description="Gerencie seu plano e informações de pagamento" />
 
       <div className="grid gap-6">
@@ -422,7 +418,7 @@ function BillingContent() {
 
 export default function BillingPage() {
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-8"><div className="text-center">Carregando...</div></div>}>
+    <Suspense fallback={<div className="text-center">Carregando...</div>}>
       <BillingContent />
     </Suspense>
   )

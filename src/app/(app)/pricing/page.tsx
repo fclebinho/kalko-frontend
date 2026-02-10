@@ -65,14 +65,12 @@ export default function PricingPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Carregando planos...</div>
-      </div>
+      <div className="text-center">Carregando planos...</div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <>
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Escolha seu Plano</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -94,6 +92,6 @@ export default function PricingPage() {
           Tem dúvidas? <a href="/contact" className="text-primary hover:underline">Entre em contato</a>
         </p>
       </div>
-    </div>
+    </>
   )
 }

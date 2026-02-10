@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/page-header'
 import { SearchBar } from '@/components/search-bar'
@@ -94,8 +93,6 @@ export default function RecipesPage() {
 
   return (
     <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
         <PageHeader title="Receitas" description="Crie e gerencie receitas com cálculo automático de custos">
           <Link href="/recipes/new">
             <Button>
@@ -196,7 +193,6 @@ export default function RecipesPage() {
                 </TableBody>
               </Table>
         </DataTable>
-      </div>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -176,21 +175,14 @@ export default function EditRecipePage() {
 
   if (loading) {
     return (
-      <>
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-muted-foreground">Carregando...</div>
-          </div>
-        </div>
-      </>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
     )
   }
 
   return (
-    <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="max-w-4xl">
         <Button
           variant="ghost"
           onClick={() => router.push(`/recipes/${id}`)}
@@ -359,7 +351,6 @@ export default function EditRecipePage() {
             </Button>
           </div>
         </form>
-      </div>
-    </>
+    </div>
   )
 }

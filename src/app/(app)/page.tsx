@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Navigation } from '@/components/navigation'
+import { useUser } from '@clerk/nextjs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { dashboardApi, analyticsApi, DashboardData, TopIngredient } from '@/lib/api'
@@ -11,9 +11,13 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 
 export default function Dashboard() {
+  const { user } = useUser()
   const [data, setData] = useState<DashboardData | null>(null)
   const [topIngredients, setTopIngredients] = useState<TopIngredient[]>([])
   const [loading, setLoading] = useState(true)
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
 
   useEffect(() => {
     loadDashboard()
@@ -38,84 +42,87 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <>
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-muted-foreground">Carregando...</div>
-          </div>
-        </div>
-      </>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
     )
   }
 
   if (!data) {
     return (
-      <>
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>Erro ao carregar dados do dashboard</AlertDescription>
-          </Alert>
-        </div>
-      </>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>Erro ao carregar dados do dashboard</AlertDescription>
+      </Alert>
     )
   }
 
   return (
     <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">{greeting}, {user?.firstName || 'Usuario'}!</h1>
+        <p className="text-muted-foreground mt-1">Aqui esta o resumo do seu negocio</p>
+      </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Receitas</CardTitle>
-              <ChefHat className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{data.summary.totalRecipes}</div>
-              <p className="text-xs text-muted-foreground">Receitas cadastradas</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Ingredientes</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{data.summary.totalIngredients}</div>
-              <p className="text-xs text-muted-foreground">Ingredientes cadastrados</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Custos Mensais</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                R$ {data.summary.monthlyCosts.toFixed(2)}
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex-shrink-0">
+                  <ChefHat className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Receitas</p>
+                  <div className="text-2xl font-bold">{data.summary.totalRecipes}</div>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">Total do mês atual</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Custo/Minuto</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                R$ {data.summary.costPerMinute.toFixed(3)}
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex-shrink-0">
+                  <Package className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Ingredientes</p>
+                  <div className="text-2xl font-bold">{data.summary.totalIngredients}</div>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">Custo operacional</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex-shrink-0">
+                  <DollarSign className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Custos Mensais</p>
+                  <div className="text-2xl font-bold">
+                    R$ {data.summary.monthlyCosts.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex-shrink-0">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Custo/Minuto</p>
+                  <div className="text-2xl font-bold">
+                    R$ {data.summary.costPerMinute.toFixed(3)}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -296,7 +303,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-      </div>
     </>
   )
 }

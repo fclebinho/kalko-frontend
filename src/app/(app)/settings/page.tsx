@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
@@ -37,10 +36,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <PageHeader title="Configurações" description="Configure suas preferências" />
+    <div className="max-w-2xl">
+      <PageHeader title="Configurações" description="Configure suas preferências" />
 
         <Card>
           <CardHeader>
@@ -79,7 +76,6 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </>
+    </div>
   )
 }

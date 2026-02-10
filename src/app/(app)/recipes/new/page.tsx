@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Navigation } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -125,9 +124,7 @@ export default function NewRecipePage() {
   }
 
   return (
-    <>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="max-w-4xl">
         <Button
           variant="ghost"
           onClick={() => router.push('/recipes')}
@@ -390,7 +387,6 @@ export default function NewRecipePage() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </>
+    </div>
   )
 }
