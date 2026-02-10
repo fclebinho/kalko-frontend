@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Rubik, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import { ptBR } from '@clerk/localizations'
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ApiProvider } from "@/components/api-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const rubik = Rubik({
+  variable: "--font-rubik",
   subsets: ["latin"],
 });
 
@@ -33,7 +33,7 @@ export default function RootLayout({
     <ClerkProvider localization={ptBR}>
       <html lang="pt-BR">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${rubik.variable} ${geistMono.variable} antialiased`}
         >
           <ApiProvider>
             {children}
