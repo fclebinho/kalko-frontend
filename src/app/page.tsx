@@ -259,7 +259,7 @@ export default function Dashboard() {
                         tick={{ fontSize: 12 }}
                       />
                       <Tooltip
-                        formatter={(value: number) => [`R$ ${value.toFixed(2)}`, 'Custo total']}
+                        formatter={((value: any) => [`R$ ${Number(value ?? 0).toFixed(2)}`, 'Custo total']) as any}
                       />
                       <Bar dataKey="totalCost" radius={[0, 4, 4, 0]}>
                         {topIngredients.slice(0, 8).map((_, index) => (

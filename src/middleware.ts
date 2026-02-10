@@ -10,6 +10,9 @@ const isPublicRoute = createRouteMatcher([
 ])
 
 export default clerkMiddleware(async (auth, req) => {
+  // Bypass auth in E2E testing mode
+  if (process.env.PLAYWRIGHT_TEST === 'true') return
+
   // Proteger todas as rotas exceto as públicas
   if (!isPublicRoute(req)) {
     await auth.protect()

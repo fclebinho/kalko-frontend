@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { UserButton } from '@clerk/nextjs'
+import { UserButton, useAuth } from '@clerk/nextjs'
 import { LayoutDashboard, Package, ChefHat, DollarSign, CreditCard, Sparkles, List, Calculator } from 'lucide-react'
 
 const navItems = [
@@ -50,6 +50,7 @@ const navItems = [
 
 export function Navigation() {
   const pathname = usePathname()
+  const { isSignedIn } = useAuth()
 
   return (
     <nav className="border-b">
@@ -83,14 +84,16 @@ export function Navigation() {
               })}
             </div>
 
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: 'h-10 w-10',
-                },
-              }}
-              afterSignOutUrl="/sign-in"
-            />
+            {isSignedIn && (
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: 'h-10 w-10',
+                  },
+                }}
+                afterSignOutUrl="/sign-in"
+              />
+            )}
           </div>
         </div>
       </div>

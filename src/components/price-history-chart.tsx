@@ -133,10 +133,11 @@ export function PriceHistoryChart({
               <XAxis dataKey="date" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${v}`} />
               <Tooltip
-                formatter={(value: number, name: string) => [
-                  `R$ ${value.toFixed(2)}`,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                formatter={((value: any, name: any) => [
+                  `R$ ${Number(value ?? 0).toFixed(2)}`,
                   FIELD_LABELS[name] || name,
-                ]}
+                ]) as any}
               />
               {activeFields.length > 1 && <Legend formatter={(v) => FIELD_LABELS[v] || v} />}
               {activeFields.map((field) => (
