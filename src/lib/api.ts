@@ -167,6 +167,13 @@ export interface PriceHistoryEntry {
   createdAt: string
 }
 
+export interface PaginationInfo {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
 // API Methods - History
 export const historyApi = {
   getHistory: (entityType: string, entityId: string, field?: string) =>
@@ -193,7 +200,7 @@ export interface BulkImportReport {
 // API Methods - Ingredients
 export const ingredientsApi = {
   list: (params?: { page?: number; limit?: number; search?: string }) =>
-    api.get<{ data: Ingredient[]; pagination: any }>('/ingredients', { params }),
+    api.get<{ data: Ingredient[]; pagination: PaginationInfo }>('/ingredients', { params }),
 
   get: (id: string) =>
     api.get<Ingredient>(`/ingredients/${id}`),
@@ -216,7 +223,7 @@ export const ingredientsApi = {
 // API Methods - Recipes
 export const recipesApi = {
   list: (params?: { page?: number; limit?: number; search?: string }) =>
-    api.get<{ data: Recipe[]; pagination: any }>('/recipes', { params }),
+    api.get<{ data: Recipe[]; pagination: PaginationInfo }>('/recipes', { params }),
 
   get: (id: string) =>
     api.get<Recipe>(`/recipes/${id}`),

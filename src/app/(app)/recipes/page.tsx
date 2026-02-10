@@ -23,28 +23,36 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { recipesApi, Recipe } from '@/lib/api'
+import { recipesApi, Recipe, PaginationInfo } from '@/lib/api'
 import { Plus, Eye, Trash2, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { isWeightVolumeUnit } from '@/lib/utils'
+import { TablePagination } from '@/components/table-pagination'
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
 
   useEffect(() => {
-    loadRecipes()
+    setPage(1)
   }, [search])
+
+  useEffect(() => {
+    loadRecipes()
+  }, [search, page])
 
   const loadRecipes = async () => {
     try {
       setLoading(true)
-      const response = await recipesApi.list({ search })
+      const response = await recipesApi.list({ search, page })
       setRecipes(response.data.data)
+      setPagination(response.data.pagination)
     } catch (error) {
       toast.error('Erro ao carregar receitas')
     } finally {
@@ -193,6 +201,15 @@ export default function RecipesPage() {
                 </TableBody>
               </Table>
         </DataTable>
+
+        {pagination && (
+          <TablePagination
+            page={page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            onPageChange={setPage}
+          />
+        )}
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

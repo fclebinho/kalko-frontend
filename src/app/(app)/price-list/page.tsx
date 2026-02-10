@@ -22,12 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { recipesApi, Recipe } from '@/lib/api'
+import { recipesApi, Recipe, PaginationInfo } from '@/lib/api'
 import { ArrowUpDown, AlertCircle, AlertTriangle, CheckCircle, Download } from 'lucide-react'
 import { generatePriceListPdf } from '@/lib/generate-price-list-pdf'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { isWeightVolumeUnit } from '@/lib/utils'
+import { TablePagination } from '@/components/table-pagination'
 
 type MarginFilter = 'all' | 'loss' | 'low' | 'good' | 'no-price'
 
@@ -35,19 +36,26 @@ export default function PriceListPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [marginFilter, setMarginFilter] = useState<MarginFilter>('all')
   const [sortField, setSortField] = useState<string>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
-    loadRecipes()
+    setPage(1)
   }, [search])
+
+  useEffect(() => {
+    loadRecipes()
+  }, [search, page])
 
   const loadRecipes = async () => {
     try {
       setLoading(true)
-      const response = await recipesApi.list({ search, limit: 100 })
+      const response = await recipesApi.list({ search, page })
       setRecipes(response.data.data)
+      setPagination(response.data.pagination)
     } catch (error) {
       toast.error('Erro ao carregar receitas')
     } finally {
@@ -139,8 +147,8 @@ export default function PriceListPage() {
     }
   }
 
-  // Resumo
-  const totalRecipes = recipes.length
+  // Resumo (dados da página atual)
+  const totalRecipes = pagination?.total ?? recipes.length
   const withPrice = recipes.filter(r => r.sellingPrice).length
   const withLoss = recipes.filter(r => r.margin !== null && r.margin !== undefined && r.margin < 0).length
   const withLowMargin = recipes.filter(r => r.margin !== null && r.margin !== undefined && r.margin >= 0 && r.margin < 20).length
@@ -305,6 +313,15 @@ export default function PriceListPage() {
                 </TableBody>
               </Table>
         </DataTable>
+
+        {pagination && (
+          <TablePagination
+            page={page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            onPageChange={setPage}
+          />
+        )}
     </>
   )
 }

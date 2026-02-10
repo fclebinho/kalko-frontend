@@ -40,9 +40,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ingredientsApi, Ingredient } from '@/lib/api'
+import { ingredientsApi, Ingredient, PaginationInfo } from '@/lib/api'
 import { PriceHistoryChart } from '@/components/price-history-chart'
 import { CSVImportDialog } from '@/components/csv-import-dialog'
+import { TablePagination } from '@/components/table-pagination'
 import { Plus, Pencil, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -50,6 +51,8 @@ export default function IngredientsPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [ingredientToDelete, setIngredientToDelete] = useState<{ id: string; name: string; usedInRecipes: number } | null>(null)
@@ -64,14 +67,19 @@ export default function IngredientsPage() {
   })
 
   useEffect(() => {
-    loadIngredients()
+    setPage(1)
   }, [search])
+
+  useEffect(() => {
+    loadIngredients()
+  }, [search, page])
 
   const loadIngredients = async () => {
     try {
       setLoading(true)
-      const response = await ingredientsApi.list({ search })
+      const response = await ingredientsApi.list({ search, page })
       setIngredients(response.data.data)
+      setPagination(response.data.pagination)
     } catch (error) {
       toast.error('Erro ao carregar ingredientes')
     } finally {
@@ -229,6 +237,15 @@ export default function IngredientsPage() {
                 </TableBody>
               </Table>
         </DataTable>
+
+        {pagination && (
+          <TablePagination
+            page={page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            onPageChange={setPage}
+          />
+        )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
