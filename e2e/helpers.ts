@@ -250,9 +250,39 @@ function handleApiRoute(route: Route) {
     return route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":"Not found"}' })
   }
 
-  // Price history
+  // Price history - comparison
+  if (path.match(/^\/v1\/history\/[\w-]+\/[\w-]+\/comparison/) && method === 'GET') {
+    return route.fulfill(
+      json({ current: 0.03, threeMonthsAgo: 0.02, change: 0.01, percentageChange: 50 })
+    )
+  }
+
+  // Price history - trend
+  if (path.match(/^\/v1\/history\/[\w-]+\/[\w-]+\/trend/) && method === 'GET') {
+    return route.fulfill(
+      json({
+        trend: 'up',
+        projections: [
+          { date: '2026-02-15T00:00:00Z', value: 0.032 },
+          { date: '2026-03-15T00:00:00Z', value: 0.035 },
+        ],
+      })
+    )
+  }
+
+  // Price history - list
   if (path.match(/^\/v1\/history\//) && method === 'GET') {
     return route.fulfill(json({ data: mockPriceHistory }))
+  }
+
+  // Notifications unread count
+  if (path === '/v1/notifications/unread-count' && method === 'GET') {
+    return route.fulfill(json({ count: 0 }))
+  }
+
+  // Notifications list
+  if (path === '/v1/notifications' && method === 'GET') {
+    return route.fulfill(json({ data: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } }))
   }
 
   // Cost settings

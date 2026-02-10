@@ -30,8 +30,23 @@ test.describe('Price History Chart', () => {
   })
 
   test('does not render chart when no history data', async ({ page }) => {
-    // Override history mock to return empty data
+    // Override history mock to return empty data for all history endpoints
     await page.route(/\/v1\/history\//, (route) => {
+      const url = new URL(route.request().url())
+      if (url.pathname.includes('/comparison')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ current: null, threeMonthsAgo: null, change: 0, percentageChange: 0 }),
+        })
+      }
+      if (url.pathname.includes('/trend')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ trend: 'stable', projections: [] }),
+        })
+      }
       route.fulfill({
         status: 200,
         contentType: 'application/json',

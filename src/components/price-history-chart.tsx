@@ -108,7 +108,7 @@ export function PriceHistoryChart({
   const sortedTimestamps = Array.from(allTimestamps).sort()
 
   // Add trend projection points if available
-  const hasTrendProjections = trend && trend.projections.length > 0
+  const hasTrendProjections = trend && trend.projections && trend.projections.length > 0
   if (hasTrendProjections) {
     for (const proj of trend!.projections) {
       allTimestamps.add(proj.date)
