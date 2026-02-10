@@ -58,6 +58,7 @@ export default function IngredientsPage() {
   const [ingredientToDelete, setIngredientToDelete] = useState<{ id: string; name: string; usedInRecipes: number } | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [supplierFilter, setSupplierFilter] = useState<string>('all')
   const [formData, setFormData] = useState({
     name: '',
     quantity: 0,
@@ -158,6 +159,10 @@ export default function IngredientsPage() {
     }
   }
 
+  const filteredIngredients = supplierFilter === 'all'
+    ? ingredients
+    : ingredients.filter(i => i.supplier === supplierFilter)
+
   return (
     <>
       <PageHeader title="Ingredientes" description="Gerencie os ingredientes e seus custos">
@@ -171,11 +176,23 @@ export default function IngredientsPage() {
           </Button>
         </PageHeader>
 
-        <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome..." />
+        <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome...">
+          <Select value={supplierFilter} onValueChange={setSupplierFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrar por fornecedor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos fornecedores</SelectItem>
+              {Array.from(new Set(ingredients.map(i => i.supplier).filter(Boolean))).sort().map(supplier => (
+                <SelectItem key={supplier} value={supplier!}>{supplier}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SearchBar>
 
         <DataTable
           loading={loading}
-          empty={ingredients.length === 0}
+          empty={filteredIngredients.length === 0}
           emptyMessage="Nenhum ingrediente encontrado"
           emptyAction={
             <Button variant="link" onClick={() => handleOpenDialog()} className="mt-2">
@@ -196,7 +213,7 @@ export default function IngredientsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {ingredients.map((ingredient) => (
+                  {filteredIngredients.map((ingredient) => (
                     <TableRow key={ingredient.id}>
                       <TableCell className="font-medium">{ingredient.name}</TableCell>
                       <TableCell>

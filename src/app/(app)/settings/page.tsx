@@ -19,7 +19,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { billingApi, Subscription, settingsApi } from '@/lib/api'
-import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, AlertTriangle, ChefHat, Package } from 'lucide-react'
+import { OnboardingWizard } from '@/components/onboarding-wizard'
+import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, AlertTriangle, ChefHat, Package, GraduationCap } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -32,6 +33,9 @@ function SettingsContent() {
   const [priceAlerts, setPriceAlerts] = useState(true)
   const [settingsLoading, setSettingsLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   // Billing state
   const [subscription, setSubscription] = useState<Subscription | null>(null)
@@ -198,6 +202,41 @@ function SettingsContent() {
               )}
             </CardContent>
           </Card>
+
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Tutorial</CardTitle>
+              <CardDescription>
+                Reveja a configuração inicial do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Configuração Inicial</p>
+                    <p className="text-sm text-muted-foreground">
+                      Reveja e atualize suas horas mensais de trabalho
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowOnboarding(true)}
+                >
+                  Rever Tutorial
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <OnboardingWizard
+            open={showOnboarding}
+            onComplete={() => setShowOnboarding(false)}
+            allowClose
+          />
         </TabsContent>
 
         {/* Tab Assinatura */}

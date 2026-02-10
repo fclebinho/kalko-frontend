@@ -174,12 +174,68 @@ export interface PaginationInfo {
   totalPages: number
 }
 
+// Types - Notifications
+export interface AppNotification {
+  id: string
+  userId: string
+  type: string // 'price_increase' | 'system'
+  title: string
+  message: string
+  data: {
+    ingredientName?: string
+    oldCost?: number
+    newCost?: number
+    percentageChange?: number
+    affectedRecipes?: Array<{ id: string; name: string; oldUnitCost: number; newUnitCost: number }>
+  } | null
+  read: boolean
+  createdAt: string
+}
+
+// Types - History Comparison & Trend
+export interface HistoryComparison {
+  current: number
+  threeMonthsAgo: number
+  change: number
+  percentageChange: number
+}
+
+export interface HistoryTrend {
+  trend: 'up' | 'down' | 'stable'
+  projections: Array<{ date: string; value: number }>
+}
+
 // API Methods - History
 export const historyApi = {
   getHistory: (entityType: string, entityId: string, field?: string) =>
     api.get<{ data: PriceHistoryEntry[] }>(`/history/${entityType}/${entityId}`, {
       params: field ? { field } : undefined,
     }),
+
+  getComparison: (entityType: string, entityId: string, field?: string) =>
+    api.get<HistoryComparison>(`/history/${entityType}/${entityId}/comparison`, {
+      params: field ? { field } : undefined,
+    }),
+
+  getTrend: (entityType: string, entityId: string, field?: string) =>
+    api.get<HistoryTrend>(`/history/${entityType}/${entityId}/trend`, {
+      params: field ? { field } : undefined,
+    }),
+}
+
+// API Methods - Notifications
+export const notificationsApi = {
+  list: (params?: { page?: number; limit?: number }) =>
+    api.get<{ data: AppNotification[]; pagination: PaginationInfo; unreadCount: number }>('/notifications', { params }),
+
+  getUnreadCount: () =>
+    api.get<{ count: number }>('/notifications/unread-count'),
+
+  markRead: (id: string) =>
+    api.put(`/notifications/${id}/read`),
+
+  markAllRead: () =>
+    api.put('/notifications/read-all'),
 }
 
 // Types - Bulk Import

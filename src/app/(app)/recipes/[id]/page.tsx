@@ -74,6 +74,12 @@ interface RecipeDetails {
         totalCost: number
         percentage: number
         isSubRecipe: boolean
+        supplier?: string | null
+        cheaperAlternative?: {
+          supplier: string
+          costPerUnit: number
+          savingsPercent: number
+        }
       }>
       ingredientsCost: number
       laborCost: number
@@ -413,6 +419,7 @@ export default function RecipeDetailsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Ingrediente</TableHead>
+                    <TableHead>Fornecedor</TableHead>
                     <TableHead>Quantidade</TableHead>
                     <TableHead>Custo/Un</TableHead>
                     <TableHead>Custo Total</TableHead>
@@ -445,6 +452,14 @@ export default function RecipeDetailsPage() {
                             <Badge className="ml-1" variant="secondary">Mais Caro</Badge>
                           )}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{ing.supplier || '-'}</span>
+                        {ing.cheaperAlternative && (
+                          <div className="text-xs text-green-600 mt-1">
+                            Alternativa: {ing.cheaperAlternative.supplier} (economia de {ing.cheaperAlternative.savingsPercent}%)
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         {ing.quantity} {ing.unit}

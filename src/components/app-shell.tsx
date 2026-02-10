@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Sidebar } from '@/components/sidebar'
+import { NotificationBell } from '@/components/notification-bell'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -12,6 +13,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Desktop header */}
+        <div className="hidden lg:flex h-14 border-b bg-background items-center justify-end px-6 flex-shrink-0">
+          <NotificationBell />
+        </div>
+
         {/* Mobile header */}
         <div className="lg:hidden h-14 border-b bg-background flex items-center px-4 flex-shrink-0">
           <button
@@ -25,6 +31,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
           </button>
           <span className="ml-2 font-bold">Kalko</span>
+          <div className="ml-auto">
+            <NotificationBell />
+          </div>
         </div>
 
         {/* Main content */}

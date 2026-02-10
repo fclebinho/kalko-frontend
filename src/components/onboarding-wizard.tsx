@@ -19,12 +19,28 @@ import { Clock, CheckCircle } from 'lucide-react'
 interface OnboardingWizardProps {
   open: boolean
   onComplete: () => void
+  allowClose?: boolean
 }
 
-export function OnboardingWizard({ open, onComplete }: OnboardingWizardProps) {
+export function OnboardingWizard({ open, onComplete, allowClose }: OnboardingWizardProps) {
   const [monthlyHours, setMonthlyHours] = useState(160)
   const [loading, setLoading] = useState(false)
   const [completed, setCompleted] = useState(false)
+
+  // Pre-fill current hours when re-accessing
+  useEffect(() => {
+    if (open && allowClose) {
+      setCompleted(false)
+      costsApi
+        .getSettings()
+        .then(res => {
+          if (res.data.monthlyHours) {
+            setMonthlyHours(res.data.monthlyHours)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [open, allowClose])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,17 +63,21 @@ export function OnboardingWizard({ open, onComplete }: OnboardingWizardProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={allowClose ? onComplete : () => {}}>
+      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => { if (!allowClose) e.preventDefault() }}>
         {!completed ? (
           <>
             <DialogHeader>
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                 <Clock className="h-6 w-6 text-primary" />
               </div>
-              <DialogTitle className="text-center">Bem-vindo ao Sistema de Precificação!</DialogTitle>
+              <DialogTitle className="text-center">
+                {allowClose ? 'Configuração Inicial' : 'Bem-vindo ao Sistema de Precificação!'}
+              </DialogTitle>
               <DialogDescription className="text-center">
-                Para calcular corretamente o custo das suas receitas, precisamos saber quantas horas você trabalha por mês.
+                {allowClose
+                  ? 'Revise e atualize suas horas mensais de trabalho.'
+                  : 'Para calcular corretamente o custo das suas receitas, precisamos saber quantas horas você trabalha por mês.'}
               </DialogDescription>
             </DialogHeader>
 
