@@ -124,7 +124,7 @@ export default function RecipesPage() {
                     <TableHead>Nome</TableHead>
                     <TableHead>Rendimento</TableHead>
                     <TableHead>Tempo Preparo</TableHead>
-                    <TableHead>Custo Unitário</TableHead>
+                    <TableHead>Custo</TableHead>
                     <TableHead>Preço Sugerido</TableHead>
                     <TableHead>Preço Venda</TableHead>
                     <TableHead>Margem</TableHead>
@@ -138,7 +138,15 @@ export default function RecipesPage() {
                       <TableCell>{recipe.yield} {recipe.yieldUnit || 'un'}</TableCell>
                       <TableCell>{recipe.prepTime} min</TableCell>
                       <TableCell>
-                        R$ {recipe.unitCost?.toFixed(2) || '0.00'}
+                        <div>
+                          R$ {(recipe.yieldUnit && recipe.yieldUnit !== 'un'
+                            ? (recipe.totalCost ?? recipe.unitCost)
+                            : recipe.unitCost
+                          )?.toFixed(2) || '0.00'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {recipe.yieldUnit && recipe.yieldUnit !== 'un' ? 'total' : '/un'}
+                        </div>
                       </TableCell>
                       <TableCell>
                         R$ {recipe.suggestedPrice?.toFixed(2) || '0.00'}
