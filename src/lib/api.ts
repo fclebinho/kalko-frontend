@@ -379,9 +379,12 @@ export interface UsageInfo {
 export interface Subscription {
   plan: string
   status: string
+  paymentGateway: 'stripe' | 'abacatepay'
   currentPeriodEnd: string | null
   stripeCustomerId: string | null
   stripePriceId: string | null
+  abacatepayCustomerId: string | null
+  abacatepayBillingId: string | null
   cancelAtPeriodEnd: boolean
   cancelAt: string | null
   planInfo: Plan
@@ -401,8 +404,8 @@ export const billingApi = {
     api.get<{ plans: Plan[] }>('/billing/plans'),
 
   // Criar sessão de checkout
-  createCheckout: (plan: string) =>
-    api.post<{ url: string }>('/billing/create-checkout', { plan }),
+  createCheckout: (plan: string, gateway: 'stripe' | 'abacatepay' = 'stripe') =>
+    api.post<{ url: string }>('/billing/create-checkout', { plan, gateway }),
 
   // Abrir customer portal
   getPortalUrl: () =>

@@ -1,20 +1,70 @@
 'use client'
 
-import { Check } from 'lucide-react'
+import { useState } from 'react'
+import { Check, CreditCard, QrCode } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
+import { RadioGroup, RadioGroupItem } from './ui/radio-group'
+import { Label } from './ui/label'
 import { Plan } from '@/lib/api'
 
 interface PricingTableProps {
   plans: Plan[]
   currentPlan?: string
-  onSelectPlan: (planId: string) => void
+  onSelectPlan: (planId: string, gateway: 'stripe' | 'abacatepay') => void
   loading?: string | null
 }
 
 export function PricingTable({ plans, currentPlan, onSelectPlan, loading }: PricingTableProps) {
+  const [selectedGateway, setSelectedGateway] = useState<'stripe' | 'abacatepay'>('stripe')
+
   return (
-    <div className="grid gap-6 md:grid-cols-3">
+    <div className="space-y-6">
+      {/* Seletor de Método de Pagamento */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="text-lg">Escolha o método de pagamento</CardTitle>
+          <CardDescription>Selecione como deseja pagar sua assinatura</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup
+            value={selectedGateway}
+            onValueChange={(v) => setSelectedGateway(v as 'stripe' | 'abacatepay')}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            <div>
+              <RadioGroupItem value="stripe" id="stripe" className="peer sr-only" />
+              <Label
+                htmlFor="stripe"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+              >
+                <CreditCard className="mb-3 h-6 w-6" />
+                <div className="text-center">
+                  <p className="font-medium">Cartão de Crédito</p>
+                  <p className="text-xs text-muted-foreground mt-1">Via Stripe (internacional)</p>
+                </div>
+              </Label>
+            </div>
+
+            <div>
+              <RadioGroupItem value="abacatepay" id="abacatepay" className="peer sr-only" />
+              <Label
+                htmlFor="abacatepay"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+              >
+                <QrCode className="mb-3 h-6 w-6" />
+                <div className="text-center">
+                  <p className="font-medium">PIX</p>
+                  <p className="text-xs text-muted-foreground mt-1">Via AbacatePay (Brasil)</p>
+                </div>
+              </Label>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
+      {/* Grid de Planos */}
+      <div className="grid gap-6 md:grid-cols-3">
       {plans.map((plan) => {
         const isCurrent = plan.id === currentPlan
         const isPopular = plan.id === 'pro'
@@ -65,7 +115,7 @@ export function PricingTable({ plans, currentPlan, onSelectPlan, loading }: Pric
               ) : (
                 <Button
                   className="w-full"
-                  onClick={() => onSelectPlan(plan.id)}
+                  onClick={() => onSelectPlan(plan.id, selectedGateway)}
                   disabled={isProcessing || loading !== null}
                   variant={isPopular ? 'default' : 'outline'}
                 >
@@ -76,6 +126,7 @@ export function PricingTable({ plans, currentPlan, onSelectPlan, loading }: Pric
           </Card>
         )
       })}
+      </div>
     </div>
   )
 }

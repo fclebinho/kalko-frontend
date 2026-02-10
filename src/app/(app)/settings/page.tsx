@@ -21,7 +21,7 @@ import {
 import { billingApi, Subscription, Plan, settingsApi } from '@/lib/api'
 import { OnboardingWizard } from '@/components/onboarding-wizard'
 import { PricingTable } from '@/components/pricing-table'
-import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, AlertTriangle, ChefHat, Package, GraduationCap, Sparkles } from 'lucide-react'
+import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, QrCode, AlertTriangle, ChefHat, Package, GraduationCap, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -149,10 +149,10 @@ function SettingsContent() {
     }
   }
 
-  async function handleSelectPlan(planId: string) {
+  async function handleSelectPlan(planId: string, gateway: 'stripe' | 'abacatepay') {
     try {
       setProcessingPlan(planId)
-      const response = await billingApi.createCheckout(planId)
+      const response = await billingApi.createCheckout(planId, gateway)
       if (response.data.url) {
         window.location.href = response.data.url
       } else {
@@ -349,6 +349,26 @@ function SettingsContent() {
                         {planPrice === 0 ? 'Grátis' : `R$ ${(planPrice / 100).toFixed(2)}/mês`}
                       </span>
                     </div>
+
+                    {isPro && subscription && (
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-sm text-muted-foreground">Método de Pagamento</span>
+                        <span className="font-medium flex items-center gap-2">
+                          {subscription.paymentGateway === 'stripe' && (
+                            <>
+                              <CreditCard className="h-4 w-4" />
+                              Cartão de Crédito
+                            </>
+                          )}
+                          {subscription.paymentGateway === 'abacatepay' && (
+                            <>
+                              <QrCode className="h-4 w-4" />
+                              PIX
+                            </>
+                          )}
+                        </span>
+                      </div>
+                    )}
 
                     {isPro && subscription.currentPeriodEnd && (
                       <div className="flex justify-between items-center py-2 border-b">
