@@ -11,7 +11,6 @@ import {
   List,
   Calculator,
   Sparkles,
-  CreditCard,
   Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -24,7 +23,6 @@ const navItems = [
   { name: 'Precos', href: '/price-list', icon: List },
   { name: 'Pedidos', href: '/orders', icon: Calculator },
   { name: 'Planos', href: '/pricing', icon: Sparkles },
-  { name: 'Assinatura', href: '/billing', icon: CreditCard },
   { name: 'Configuracoes', href: '/settings', icon: Settings },
 ]
 
