@@ -33,7 +33,7 @@ export default function RootLayout({
     <ClerkProvider localization={ptBR}>
       <html lang="pt-BR">
         <body
-          className={`${rubik.variable} ${geistMono.variable} antialiased`}
+          className={`${rubik.variable} ${geistMono.variable} font-sans antialiased`}
         >
           <ApiProvider>
             {children}
