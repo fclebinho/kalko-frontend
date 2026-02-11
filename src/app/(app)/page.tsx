@@ -5,7 +5,7 @@ import { useUser } from '@clerk/nextjs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { dashboardApi, analyticsApi, DashboardData, TopIngredient } from '@/lib/api'
-import { Package, ChefHat, DollarSign, TrendingUp, AlertCircle, AlertTriangle } from 'lucide-react'
+import { Package, ChefHat, DollarSign, TrendingUp, AlertCircle, AlertTriangle, TrendingDown } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -65,7 +65,7 @@ export default function Dashboard() {
       </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -123,6 +123,24 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <Link href="/recipes" className="block hover:opacity-80 transition-opacity">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-red-50 text-red-600 flex-shrink-0">
+                    <TrendingDown className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Receitas em Prejuízo</p>
+                    <div className="text-2xl font-bold text-red-600">
+                      {data.summary.recipesWithLoss}
+                    </div>
+                  </div>
+                </div>
+              </Link>
             </CardContent>
           </Card>
         </div>

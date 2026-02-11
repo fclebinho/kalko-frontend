@@ -146,6 +146,7 @@ export interface DashboardData {
     totalIngredients: number
     monthlyCosts: number
     costPerMinute: number
+    recipesWithLoss: number
   }
   recentRecipes: Recipe[]
   mostProfitable: Recipe[]
