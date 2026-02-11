@@ -158,7 +158,7 @@ export function NotificationBell() {
                             >
                               <span className="text-primary truncate">{recipe.name}</span>
                               <span className="text-muted-foreground ml-2 flex-shrink-0">
-                                R${recipe.oldUnitCost.toFixed(2)} → R${recipe.newUnitCost.toFixed(2)}
+                                R${recipe.oldIngredientCost.toFixed(2)} → R${recipe.newIngredientCost.toFixed(2)}
                               </span>
                             </Link>
                           ))}

@@ -186,7 +186,15 @@ export interface AppNotification {
     oldCost?: number
     newCost?: number
     percentageChange?: number
-    affectedRecipes?: Array<{ id: string; name: string; oldUnitCost: number; newUnitCost: number }>
+    affectedRecipes?: Array<{
+      id: string
+      name: string
+      quantityUsed: number
+      oldIngredientCost: number
+      newIngredientCost: number
+      oldUnitCost: number
+      newUnitCost: number
+    }>
   } | null
   read: boolean
   createdAt: string
