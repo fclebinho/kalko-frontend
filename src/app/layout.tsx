@@ -1,3 +1,4 @@
+// Force CI trigger - notification fix deployment
 import type { Metadata } from "next";
 import { Rubik, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
