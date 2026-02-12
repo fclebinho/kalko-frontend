@@ -67,13 +67,13 @@ export default function Dashboard() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
+            <CardContent className="pt-6 min-h-[100px] flex items-center">
+              <div className="flex items-center gap-4 w-full">
                 <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex-shrink-0">
                   <ChefHat className="h-6 w-6" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Receitas</p>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground whitespace-nowrap">Receitas</p>
                   <div className="text-2xl font-bold">{data.summary.totalRecipes}</div>
                 </div>
               </div>
@@ -81,13 +81,13 @@ export default function Dashboard() {
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
+            <CardContent className="pt-6 min-h-[100px] flex items-center">
+              <div className="flex items-center gap-4 w-full">
                 <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex-shrink-0">
                   <Package className="h-6 w-6" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Ingredientes</p>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground whitespace-nowrap">Ingredientes</p>
                   <div className="text-2xl font-bold">{data.summary.totalIngredients}</div>
                 </div>
               </div>
@@ -95,13 +95,13 @@ export default function Dashboard() {
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
+            <CardContent className="pt-6 min-h-[100px] flex items-center">
+              <div className="flex items-center gap-4 w-full">
                 <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex-shrink-0">
                   <DollarSign className="h-6 w-6" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Custos Mensais</p>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground whitespace-nowrap">Custos do Mês</p>
                   <div className="text-2xl font-bold">
                     R$ {data.summary.monthlyCosts.toFixed(2)}
                   </div>
@@ -111,13 +111,13 @@ export default function Dashboard() {
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
+            <CardContent className="pt-6 min-h-[100px] flex items-center">
+              <div className="flex items-center gap-4 w-full">
                 <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex-shrink-0">
                   <TrendingUp className="h-6 w-6" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Custo/Minuto</p>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground whitespace-nowrap">R$/Minuto</p>
                   <div className="text-2xl font-bold">
                     R$ {data.summary.costPerMinute.toFixed(3)}
                   </div>
@@ -127,14 +127,14 @@ export default function Dashboard() {
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
-              <Link href="/recipes" className="block hover:opacity-80 transition-opacity">
-                <div className="flex items-center gap-4">
+            <CardContent className="pt-6 min-h-[100px] flex items-center">
+              <Link href="/recipes" className="block hover:opacity-80 transition-opacity w-full">
+                <div className="flex items-center gap-4 w-full">
                   <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-red-50 text-red-600 flex-shrink-0">
                     <TrendingDown className="h-6 w-6" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Receitas em Prejuízo</p>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground whitespace-nowrap">Em Prejuízo</p>
                     <div className="text-2xl font-bold text-red-600">
                       {data.summary.recipesWithLoss}
                     </div>
