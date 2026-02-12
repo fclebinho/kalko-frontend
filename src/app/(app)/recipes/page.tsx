@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { recipesApi, Recipe, PaginationInfo } from '@/lib/api'
-import { Plus, Eye, Trash2, Copy } from 'lucide-react'
+import { Plus, Eye, Trash2, Copy, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { isWeightVolumeUnit } from '@/lib/utils'
@@ -40,6 +40,7 @@ export default function RecipesPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
   const [duplicateTarget, setDuplicateTarget] = useState<{ id: string; name: string } | null>(null)
+  const [recalculating, setRecalculating] = useState(false)
 
   useEffect(() => {
     setPage(1)
@@ -103,6 +104,19 @@ export default function RecipesPage() {
     }
   }
 
+  const handleRecalculateAll = async () => {
+    try {
+      setRecalculating(true)
+      const response = await recipesApi.recalculateAll()
+      toast.success(`${response.data.count} receitas recalculadas com sucesso`)
+      loadRecipes()
+    } catch (error: any) {
+      toast.error('Erro ao recalcular receitas')
+    } finally {
+      setRecalculating(false)
+    }
+  }
+
   const getMarginColor = (margin?: number | null) => {
     if (!margin) return ''
     if (margin < 0) return 'text-red-600'
@@ -114,12 +128,18 @@ export default function RecipesPage() {
   return (
     <>
         <PageHeader title="Receitas" description="Crie e gerencie receitas com cálculo automático de custos">
-          <Link href="/recipes/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Receita
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleRecalculateAll} disabled={recalculating}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
+              Recalcular Todas
             </Button>
-          </Link>
+            <Link href="/recipes/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Receita
+              </Button>
+            </Link>
+          </div>
         </PageHeader>
 
         <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome..." />

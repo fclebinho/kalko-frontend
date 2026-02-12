@@ -311,6 +311,9 @@ export const recipesApi = {
   duplicate: (id: string) =>
     api.post<Recipe>(`/recipes/${id}/duplicate`),
 
+  recalculateAll: () =>
+    api.post<{ message: string; count: number; recipes: Array<{ id: string; name: string; unitCost: number; totalCost: number }> }>('/recipes/recalculate-all'),
+
   delete: (id: string) =>
     api.delete(`/recipes/${id}`)
 }
