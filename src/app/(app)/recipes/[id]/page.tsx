@@ -41,6 +41,7 @@ interface RecipeDetails {
   yieldUnit?: string
   totalCost?: number
   unitCost?: number
+  pricingCost?: number
   suggestedPrice?: number
   sellingPrice?: number
   margin?: number
@@ -87,6 +88,7 @@ interface RecipeDetails {
       totalCost: number
     }
     unitCost: number
+    pricingCost: number
     suggestedPrice: number
     sellingPrice?: number
     actualMargin?: number
