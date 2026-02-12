@@ -100,6 +100,7 @@ export const mockRecipes = [
         totalCost: 25.5,
       },
       unitCost: 0.0255,
+      pricingCost: 25.5, // totalCost para peso/volume (g, kg, ml, l)
       suggestedPrice: 45.0,
       sellingPrice: 50.0,
       actualMargin: 49,
