@@ -30,7 +30,7 @@ import { toast } from 'sonner'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { PriceCalculator } from '@/components/price-calculator'
 import { PriceHistoryChart } from '@/components/price-history-chart'
-import { isWeightVolumeUnit } from '@/lib/utils'
+// Cálculos centralizados no backend - não usar isWeightVolumeUnit
 
 interface RecipeDetails {
   id: string
@@ -122,7 +122,28 @@ export default function RecipeDetailsPage() {
     try {
       setLoading(true)
       const response = await recipesApi.get(id)
-      setRecipe(response.data as RecipeDetails)
+      const recipeData = response.data as RecipeDetails
+
+      // DEBUG: Verificar valores de custos
+      console.group('🔍 DEBUG Recipe Costs')
+      console.log('Recipe from DB:', {
+        unitCost: recipeData.unitCost,
+        totalCost: recipeData.totalCost,
+        pricingCost: recipeData.pricingCost,
+        yieldUnit: recipeData.yieldUnit,
+        yield: recipeData.yield
+      })
+      console.log('Calculations:', {
+        unitCost: recipeData.calculations?.unitCost,
+        pricingCost: recipeData.calculations?.pricingCost,
+        totalCost: recipeData.calculations?.breakdown.totalCost
+      })
+      console.log('Expected unitCost:', recipeData.calculations?.breakdown.totalCost
+        ? (recipeData.calculations.breakdown.totalCost / recipeData.yield).toFixed(2)
+        : 'N/A')
+      console.groupEnd()
+
+      setRecipe(recipeData)
     } catch (error: any) {
       console.error('Erro ao carregar receita:', error)
       const message = error.response?.data?.error || error.message || 'Erro ao carregar receita'
@@ -360,12 +381,14 @@ export default function RecipeDetailsPage() {
                     <span>Custo Total:</span>
                     <span>R$ {calculations.breakdown.totalCost.toFixed(2)}</span>
                   </div>
-                  {!isWeightVolumeUnit(recipe.yieldUnit) && (
-                    <div className="flex justify-between text-sm">
-                      <span>Custo Unitário:</span>
-                      <span className="font-medium">R$ {calculations.unitCost.toFixed(2)}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-sm">
+                    <span>Custo por {recipe.yieldUnit || 'un'}:</span>
+                    <span className="font-medium">R$ {calculations.unitCost.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm bg-blue-50 p-2 rounded">
+                    <span className="font-semibold">Custo para Precificação:</span>
+                    <span className="font-bold text-blue-600">R$ {calculations.pricingCost.toFixed(2)}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -487,17 +510,8 @@ export default function RecipeDetailsPage() {
         {calculations && (
           <div className="mb-8">
             <PriceCalculator
-              unitCost={
-                isWeightVolumeUnit(recipe.yieldUnit)
-                  ? (calculations.breakdown.totalCost)
-                  : calculations.unitCost
-              }
-              suggestedPrice={
-                isWeightVolumeUnit(recipe.yieldUnit)
-                  ? (calculations.breakdown.totalCost * 1.5)
-                  : calculations.suggestedPrice
-              }
-              costLabel={isWeightVolumeUnit(recipe.yieldUnit) ? 'Custo Total' : undefined}
+              unitCost={calculations.pricingCost}
+              suggestedPrice={calculations.suggestedPrice}
               currentPrice={recipe.sellingPrice || undefined}
               onApplyPrice={handleApplyPrice}
             />
