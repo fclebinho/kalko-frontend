@@ -27,7 +27,6 @@ import { recipesApi, Recipe, PaginationInfo } from '@/lib/api'
 import { Plus, Eye, Trash2, Copy, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { isWeightVolumeUnit } from '@/lib/utils'
 import { TablePagination } from '@/components/table-pagination'
 
 export default function RecipesPage() {
@@ -176,15 +175,7 @@ export default function RecipesPage() {
                       <TableCell>{recipe.yield} {recipe.yieldUnit || 'un'}</TableCell>
                       <TableCell>{recipe.prepTime} min</TableCell>
                       <TableCell>
-                        <div>
-                          R$ {(isWeightVolumeUnit(recipe.yieldUnit)
-                            ? (recipe.totalCost ?? recipe.unitCost)
-                            : recipe.unitCost
-                          )?.toFixed(2) || '0.00'}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {isWeightVolumeUnit(recipe.yieldUnit) ? 'total' : '/un'}
-                        </div>
+                        R$ {(recipe.pricingCost ?? recipe.unitCost ?? 0).toFixed(2)}
                       </TableCell>
                       <TableCell>
                         R$ {recipe.suggestedPrice?.toFixed(2) || '0.00'}

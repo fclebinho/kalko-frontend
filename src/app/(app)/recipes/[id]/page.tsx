@@ -238,22 +238,16 @@ export default function RecipeDetailsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {isWeightVolumeUnit(recipe.yieldUnit) ? 'Custo da Receita' : 'Custo Unitário'}
+                Custo
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                R$ {(isWeightVolumeUnit(recipe.yieldUnit)
-                  ? (calculations?.breakdown.totalCost ?? recipe.totalCost)
-                  : (calculations?.unitCost ?? recipe.unitCost)
-                )?.toFixed(2) || '0.00'}
+                R$ {(calculations?.pricingCost ?? recipe.pricingCost ?? recipe.unitCost ?? 0).toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Sugerido: R$ {(isWeightVolumeUnit(recipe.yieldUnit)
-                  ? ((calculations?.breakdown.totalCost ?? recipe.totalCost ?? 0) * 1.5)
-                  : (calculations?.suggestedPrice ?? recipe.suggestedPrice)
-                )?.toFixed(2) || '0.00'}
+                Sugerido: R$ {(calculations?.suggestedPrice ?? recipe.suggestedPrice ?? 0).toFixed(2)}
               </p>
             </CardContent>
           </Card>

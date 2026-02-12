@@ -92,6 +92,7 @@ export interface Recipe {
   yieldUnit?: string
   totalCost?: number
   unitCost?: number
+  pricingCost?: number // Custo para exibição (backend decide baseado em yieldUnit)
   suggestedPrice?: number
   sellingPrice?: number
   margin?: number
