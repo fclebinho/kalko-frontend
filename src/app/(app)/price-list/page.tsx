@@ -112,12 +112,6 @@ export default function PriceListPage() {
     return '/un'
   }
 
-  const getProfit = (recipe: Recipe) => {
-    if (!recipe.sellingPrice) return null
-    const cost = getDisplayCost(recipe)
-    return recipe.sellingPrice - cost
-  }
-
   // Filter
   const filteredRecipes = recipes.filter(recipe => {
     if (marginFilter === 'all') return true
@@ -248,7 +242,7 @@ export default function PriceListPage() {
                 </TableHeader>
                 <TableBody>
                   {sortedRecipes.map((recipe) => {
-                    const profit = getProfit(recipe)
+                    const profit = recipe.profit
                     return (
                       <TableRow key={recipe.id} className={
                         recipe.margin !== null && recipe.margin !== undefined && recipe.margin < 0

@@ -30,18 +30,13 @@ export function generatePriceListPdf({ recipes, title }: PdfOptions) {
       ? (recipe.totalCost ?? recipe.unitCost ?? 0)
       : (recipe.unitCost ?? 0)
 
-    const profit =
-      recipe.sellingPrice && recipe.unitCost
-        ? recipe.sellingPrice - recipe.unitCost
-        : null
-
     return [
       recipe.name,
       `${recipe.yield} ${recipe.yieldUnit || 'un'}`,
       `${recipe.prepTime} min`,
       `R$ ${displayCost.toFixed(2)}`,
       recipe.sellingPrice ? `R$ ${recipe.sellingPrice.toFixed(2)}` : '-',
-      profit !== null ? `R$ ${profit.toFixed(2)}` : '-',
+      recipe.profit !== null && recipe.profit !== undefined ? `R$ ${recipe.profit.toFixed(2)}` : '-',
       recipe.margin !== null && recipe.margin !== undefined
         ? `${recipe.margin.toFixed(1)}%`
         : '-',

@@ -96,6 +96,7 @@ export interface Recipe {
   suggestedPrice?: number
   sellingPrice?: number
   margin?: number
+  profit?: number // Lucro (sellingPrice - pricingCost), calculado pelo backend
   createdAt: string
   updatedAt: string
   ingredients?: RecipeIngredient[]
@@ -315,6 +316,13 @@ export const recipesApi = {
   recalculateAll: () =>
     api.post<{ message: string; count: number; recipes: Array<{ id: string; name: string; unitCost: number; totalCost: number }> }>('/recipes/recalculate-all'),
 
+  calculatePrice: (data: {
+    unitCost: number
+    margin?: number
+    profit?: number
+  }) =>
+    api.post<{ unitCost: number; sellingPrice: number; profit: number; margin: number }>('/recipes/calculate-price', data),
+
   delete: (id: string) =>
     api.delete(`/recipes/${id}`)
 }
@@ -448,4 +456,36 @@ export const settingsApi = {
 
   updateEmailPreferences: (data: { priceAlerts: boolean }) =>
     api.put<EmailPreferences>('/settings/email-preferences', data),
+}
+
+// API Methods - Orders
+export interface OrderItem {
+  recipeId: string
+  quantity: number
+  unitCost: number
+  sellingPrice: number
+}
+
+export interface OrderCalculation {
+  items: Array<OrderItem & {
+    totalCost: number
+    totalPrice: number
+    totalProfit: number
+  }>
+  subtotalCost: number
+  subtotalPrice: number
+  discountAmount: number
+  totalCost: number
+  totalPrice: number
+  totalProfit: number
+  margin: number
+}
+
+export const ordersApi = {
+  calculate: (data: {
+    items: OrderItem[]
+    discountType?: 'percentage' | 'fixed'
+    discountValue?: number
+  }) =>
+    api.post<OrderCalculation>('/orders/calculate', data)
 }

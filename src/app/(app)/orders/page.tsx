@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { recipesApi, Recipe } from '@/lib/api'
+import { recipesApi, Recipe, ordersApi, OrderCalculation } from '@/lib/api'
 import { generateOrderPdf } from '@/lib/generate-order-pdf'
 import { Plus, Trash2, Download, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
@@ -67,38 +67,45 @@ export default function OrdersPage() {
     )
   }, [availableRecipes, recipeSearch])
 
-  // Calculations
-  const subtotalCost = useMemo(
-    () => items.reduce((sum, item) => sum + item.unitCost * item.quantity, 0),
-    [items]
-  )
+  // Calculations from backend API
+  const [calculations, setCalculations] = useState<OrderCalculation | null>(null)
 
-  const subtotalPrice = useMemo(
-    () => items.reduce((sum, item) => sum + item.sellingPrice * item.quantity, 0),
-    [items]
-  )
+  // Call backend API with debounce (500ms)
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (items.length === 0) {
+        setCalculations(null)
+        return
+      }
 
-  const discountAmount = useMemo(() => {
-    if (discountValue <= 0) return 0
-    return discountType === 'percentage'
-      ? subtotalPrice * (discountValue / 100)
-      : discountValue
-  }, [discountType, discountValue, subtotalPrice])
+      try {
+        const response = await ordersApi.calculate({
+          items: items.map(item => ({
+            recipeId: item.recipeId,
+            quantity: item.quantity,
+            unitCost: item.unitCost,
+            sellingPrice: item.sellingPrice
+          })),
+          discountType,
+          discountValue
+        })
+        setCalculations(response.data)
+      } catch (error) {
+        console.error('Error calculating order:', error)
+        toast.error('Erro ao calcular pedido')
+      }
+    }, 500) // 500ms debounce
 
-  const finalPrice = useMemo(
-    () => Math.max(0, subtotalPrice - discountAmount),
-    [subtotalPrice, discountAmount]
-  )
+    return () => clearTimeout(timeoutId)
+  }, [items, discountType, discountValue])
 
-  const finalProfit = useMemo(
-    () => finalPrice - subtotalCost,
-    [finalPrice, subtotalCost]
-  )
-
-  const finalMargin = useMemo(
-    () => (finalPrice > 0 ? (finalProfit / finalPrice) * 100 : 0),
-    [finalProfit, finalPrice]
-  )
+  // Extract calculated values (with fallbacks for loading state)
+  const subtotalCost = calculations?.subtotalCost ?? 0
+  const subtotalPrice = calculations?.subtotalPrice ?? 0
+  const discountAmount = calculations?.discountAmount ?? 0
+  const finalPrice = calculations?.totalPrice ?? 0
+  const finalProfit = calculations?.totalProfit ?? 0
+  const finalMargin = calculations?.margin ?? 0
 
   const handleAddItem = () => {
     if (!selectedRecipeId) {

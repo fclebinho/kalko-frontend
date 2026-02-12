@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Calculator, TrendingUp, Target, DollarSign } from 'lucide-react'
+import { Calculator, TrendingUp, Target, DollarSign, Loader2 } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
+import { recipesApi } from '@/lib/api'
 
 interface PriceCalculatorProps {
   unitCost: number
@@ -27,33 +28,68 @@ export function PriceCalculator({
   const [targetProfit, setTargetProfit] = useState(10)
   const [customPrice, setCustomPrice] = useState(currentPrice || suggestedPrice)
 
-  // Calcular preço baseado em margem desejada
-  const calculatePriceByMargin = (margin: number) => {
-    // margem = (preço - custo) / preço * 100
-    // preço = custo / (1 - margem/100)
-    return unitCost / (1 - margin / 100)
-  }
+  // Results from backend API
+  const [priceByMargin, setPriceByMargin] = useState(suggestedPrice)
+  const [priceByProfit, setPriceByProfit] = useState(unitCost + targetProfit)
+  const [customMargin, setCustomMargin] = useState(0)
+  const [customProfitValue, setCustomProfitValue] = useState(0)
+  const [calculatingMargin, setCalculatingMargin] = useState(false)
+  const [calculatingProfit, setCalculatingProfit] = useState(false)
+  const [calculatingCustom, setCalculatingCustom] = useState(false)
 
-  // Calcular preço para lucro alvo
-  const calculatePriceByProfit = (profit: number) => {
-    return unitCost + profit
-  }
+  // Calculate price by margin (debounced API call)
+  useEffect(() => {
+    setCalculatingMargin(true)
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await recipesApi.calculatePrice({ unitCost, margin: desiredMargin })
+        setPriceByMargin(response.data.sellingPrice)
+      } catch (error) {
+        console.error('Error calculating price by margin:', error)
+      } finally {
+        setCalculatingMargin(false)
+      }
+    }, 300) // 300ms debounce
 
-  // Calcular margem de um preço
-  const calculateMargin = (price: number) => {
-    if (price <= 0) return 0
-    return ((price - unitCost) / price) * 100
-  }
+    return () => clearTimeout(timeoutId)
+  }, [unitCost, desiredMargin])
 
-  // Calcular lucro de um preço
-  const calculateProfit = (price: number) => {
-    return price - unitCost
-  }
+  // Calculate price by profit (debounced API call)
+  useEffect(() => {
+    setCalculatingProfit(true)
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await recipesApi.calculatePrice({ unitCost, profit: targetProfit })
+        setPriceByProfit(response.data.sellingPrice)
+      } catch (error) {
+        console.error('Error calculating price by profit:', error)
+      } finally {
+        setCalculatingProfit(false)
+      }
+    }, 300) // 300ms debounce
 
-  const priceByMargin = calculatePriceByMargin(desiredMargin)
-  const priceByProfit = calculatePriceByProfit(targetProfit)
-  const customMargin = calculateMargin(customPrice)
-  const customProfitValue = calculateProfit(customPrice)
+    return () => clearTimeout(timeoutId)
+  }, [unitCost, targetProfit])
+
+  // Calculate margin/profit for custom price (debounced API call)
+  useEffect(() => {
+    setCalculatingCustom(true)
+    const timeoutId = setTimeout(async () => {
+      try {
+        // Calculate profit to find margin
+        const profit = customPrice - unitCost
+        const response = await recipesApi.calculatePrice({ unitCost, profit })
+        setCustomMargin(response.data.margin)
+        setCustomProfitValue(response.data.profit)
+      } catch (error) {
+        console.error('Error calculating custom price:', error)
+      } finally {
+        setCalculatingCustom(false)
+      }
+    }, 300) // 300ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [unitCost, customPrice])
 
   const getMarginColor = (margin: number) => {
     if (margin < 0) return 'text-red-600'
@@ -113,14 +149,18 @@ export function PriceCalculator({
           <div className="p-3 bg-primary/10 rounded-md">
             <div className="flex justify-between items-center">
               <span className="text-sm">Preço calculado:</span>
-              <div className="text-right">
-                <div className="text-xl font-bold text-primary">
-                  R$ {priceByMargin.toFixed(2)}
+              {calculatingMargin ? (
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              ) : (
+                <div className="text-right">
+                  <div className="text-xl font-bold text-primary">
+                    R$ {priceByMargin.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Lucro: R$ {(priceByMargin - unitCost).toFixed(2)}
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  Lucro: R$ {calculateProfit(priceByMargin).toFixed(2)}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -151,14 +191,18 @@ export function PriceCalculator({
           <div className="p-3 bg-primary/10 rounded-md">
             <div className="flex justify-between items-center">
               <span className="text-sm">Preço calculado:</span>
-              <div className="text-right">
-                <div className="text-xl font-bold text-primary">
-                  R$ {priceByProfit.toFixed(2)}
+              {calculatingProfit ? (
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              ) : (
+                <div className="text-right">
+                  <div className="text-xl font-bold text-primary">
+                    R$ {priceByProfit.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Margem: {((targetProfit / priceByProfit) * 100).toFixed(1)}%
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  Margem: {calculateMargin(priceByProfit).toFixed(1)}%
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -187,24 +231,30 @@ export function PriceCalculator({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 bg-muted rounded-md">
-              <div className="text-xs text-muted-foreground mb-1">Margem</div>
-              <div className={`text-lg font-bold ${getMarginColor(customMargin)}`}>
-                {customMargin.toFixed(1)}%
+          {calculatingCustom ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-muted rounded-md">
+                <div className="text-xs text-muted-foreground mb-1">Margem</div>
+                <div className={`text-lg font-bold ${getMarginColor(customMargin)}`}>
+                  {customMargin.toFixed(1)}%
+                </div>
+              </div>
+              <div className="p-3 bg-muted rounded-md">
+                <div className="text-xs text-muted-foreground mb-1">Lucro</div>
+                <div
+                  className={`text-lg font-bold ${
+                    customProfitValue >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  R$ {customProfitValue.toFixed(2)}
+                </div>
               </div>
             </div>
-            <div className="p-3 bg-muted rounded-md">
-              <div className="text-xs text-muted-foreground mb-1">Lucro</div>
-              <div
-                className={`text-lg font-bold ${
-                  customProfitValue >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                R$ {customProfitValue.toFixed(2)}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Comparação */}

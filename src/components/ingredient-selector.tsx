@@ -103,13 +103,8 @@ export function IngredientSelector({ onAdd, excludeRecipeId }: IngredientSelecto
     ? !!selectedIngredient && quantity > 0
     : !!selectedRecipe && quantity > 0
 
-  const estimatedCost = activeTab === 'ingredient'
-    ? selectedIngredient && quantity > 0
-      ? selectedIngredient.costPerUnit * quantity
-      : null
-    : selectedRecipe?.unitCost && quantity > 0
-      ? selectedRecipe.unitCost * quantity
-      : null
+  // Custo estimado será calculado pelo backend ao salvar a receita
+  const estimatedCost = null
 
   return (
     <div className="space-y-4 p-4 border rounded-md bg-muted/50">
