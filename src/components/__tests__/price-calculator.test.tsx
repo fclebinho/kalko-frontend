@@ -1,5 +1,13 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { PriceCalculator } from '../price-calculator'
+import { recipesApi } from '@/lib/api'
+
+// Mock API
+vi.mock('@/lib/api', () => ({
+  recipesApi: {
+    calculatePrice: vi.fn(),
+  },
+}))
 
 describe('PriceCalculator', () => {
   const defaultProps = {
@@ -9,6 +17,15 @@ describe('PriceCalculator', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // Mock da API retorna sempre valores calculados corretos
+    ;(recipesApi.calculatePrice as any).mockResolvedValue({
+      data: {
+        sellingPrice: 20,
+        profit: 10,
+        margin: 50,
+      },
+    })
   })
 
   test('renders unit cost and suggested price', () => {
@@ -24,24 +41,40 @@ describe('PriceCalculator', () => {
     expect(screen.getByText('Calculadora de Preço')).toBeInTheDocument()
   })
 
-  test('calculates price by margin correctly', () => {
+  test('calculates price by margin correctly using backend API', async () => {
     render(<PriceCalculator {...defaultProps} />)
 
-    // Default margin is 50%
-    // price = unitCost / (1 - margin/100) = 10 / (1 - 0.5) = 20
-    // Both margin and profit sections may show R$ 20.00
-    const prices = screen.getAllByText('R$ 20.00')
-    expect(prices.length).toBeGreaterThanOrEqual(1)
+    // Aguardar a API ser chamada e o resultado ser exibido
+    await waitFor(() => {
+      expect(recipesApi.calculatePrice).toHaveBeenCalledWith({
+        unitCost: 10,
+        margin: 50,
+      })
+    })
+
+    // O preço calculado deve aparecer após a API responder
+    await waitFor(() => {
+      const prices = screen.getAllByText('R$ 20.00')
+      expect(prices.length).toBeGreaterThanOrEqual(1)
+    })
   })
 
-  test('calculates price by target profit', () => {
+  test('calculates price by target profit using backend API', async () => {
     render(<PriceCalculator {...defaultProps} />)
 
-    // Default target profit is R$ 10
-    // price = unitCost + profit = 10 + 10 = 20
-    // Both "Por Margem" (50%) and "Por Lucro" (R$10) give R$ 20.00
-    const prices = screen.getAllByText('R$ 20.00')
-    expect(prices.length).toBeGreaterThanOrEqual(1)
+    // Aguardar a API ser chamada e o resultado ser exibido
+    await waitFor(() => {
+      expect(recipesApi.calculatePrice).toHaveBeenCalledWith({
+        unitCost: 10,
+        profit: 10,
+      })
+    })
+
+    // O preço calculado deve aparecer após a API responder
+    await waitFor(() => {
+      const prices = screen.getAllByText('R$ 20.00')
+      expect(prices.length).toBeGreaterThanOrEqual(1)
+    })
   })
 
   test('shows comparison section when currentPrice provided', () => {
