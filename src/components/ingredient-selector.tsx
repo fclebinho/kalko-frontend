@@ -103,9 +103,6 @@ export function IngredientSelector({ onAdd, excludeRecipeId }: IngredientSelecto
     ? !!selectedIngredient && quantity > 0
     : !!selectedRecipe && quantity > 0
 
-  // Custo estimado será calculado pelo backend ao salvar a receita
-  const estimatedCost = null
-
   return (
     <div className="space-y-4 p-4 border rounded-md bg-muted/50">
       {/* Tab buttons */}
@@ -247,15 +244,7 @@ export function IngredientSelector({ onAdd, excludeRecipeId }: IngredientSelecto
         </div>
       )}
 
-      {/* Estimated cost */}
-      {estimatedCost !== null && (
-        <div className="bg-background p-3 rounded-md border">
-          <div className="text-sm text-muted-foreground mb-1">Custo estimado:</div>
-          <div className="text-lg font-semibold">
-            R$ {estimatedCost.toFixed(2)}
-          </div>
-        </div>
-      )}
+      {/* Custo será calculado pelo backend ao salvar a receita */}
 
       <Button
         onClick={handleAdd}

@@ -276,7 +276,7 @@ export default function PriceListPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {profit !== null ? (
+                          {profit !== null && profit !== undefined ? (
                             <span className={profit >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
                               R$ {profit.toFixed(2)}
                             </span>
