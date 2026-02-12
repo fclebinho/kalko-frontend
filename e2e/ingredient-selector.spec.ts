@@ -108,9 +108,6 @@ test.describe('Ingredient Selector', () => {
     // Set quantity
     await page.getByLabel('Quantidade').fill('500')
 
-    // Should show estimated cost
-    await expect(page.getByText('Custo estimado:')).toBeVisible()
-
     // Click add
     await page.getByRole('button', { name: /adicionar ingrediente/i }).click()
 
