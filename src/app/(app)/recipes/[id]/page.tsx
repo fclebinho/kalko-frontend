@@ -122,28 +122,7 @@ export default function RecipeDetailsPage() {
     try {
       setLoading(true)
       const response = await recipesApi.get(id)
-      const recipeData = response.data as RecipeDetails
-
-      // DEBUG: Verificar valores de custos
-      console.group('🔍 DEBUG Recipe Costs')
-      console.log('Recipe from DB:', {
-        unitCost: recipeData.unitCost,
-        totalCost: recipeData.totalCost,
-        pricingCost: recipeData.pricingCost,
-        yieldUnit: recipeData.yieldUnit,
-        yield: recipeData.yield
-      })
-      console.log('Calculations:', {
-        unitCost: recipeData.calculations?.unitCost,
-        pricingCost: recipeData.calculations?.pricingCost,
-        totalCost: recipeData.calculations?.breakdown.totalCost
-      })
-      console.log('Expected unitCost:', recipeData.calculations?.breakdown.totalCost
-        ? (recipeData.calculations.breakdown.totalCost / recipeData.yield).toFixed(2)
-        : 'N/A')
-      console.groupEnd()
-
-      setRecipe(recipeData)
+      setRecipe(response.data as RecipeDetails)
     } catch (error: any) {
       console.error('Erro ao carregar receita:', error)
       const message = error.response?.data?.error || error.message || 'Erro ao carregar receita'
@@ -387,7 +366,9 @@ export default function RecipeDetailsPage() {
                   </div>
                   <div className="flex justify-between text-sm bg-blue-50 p-2 rounded">
                     <span className="font-semibold">Custo para Precificação:</span>
-                    <span className="font-bold text-blue-600">R$ {calculations.pricingCost.toFixed(2)}</span>
+                    <span className="font-bold text-blue-600">
+                      R$ {(calculations.pricingCost ?? calculations.unitCost ?? 0).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </CardContent>
