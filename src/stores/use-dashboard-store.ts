@@ -1,3 +1,9 @@
+/**
+ * Dashboard Store - Zustand
+ *
+ * Gerencia cache client-side dos dados do dashboard com TTL de 5 minutos.
+ * Elimina flickering ao navegar e reduz requests desnecessários ao backend.
+ */
 import { create } from 'zustand'
 import { DashboardData, TopIngredient } from '@/lib/api'
 

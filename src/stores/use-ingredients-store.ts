@@ -1,3 +1,9 @@
+/**
+ * Ingredients Store - Zustand
+ *
+ * Cache paginado de ingredientes com TTL de 2 minutos.
+ * Suporta optimistic updates para delete operations.
+ */
 import { create } from 'zustand'
 import { Ingredient, PaginationInfo } from '@/lib/api'
 

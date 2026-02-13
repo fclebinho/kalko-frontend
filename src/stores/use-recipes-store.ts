@@ -1,3 +1,9 @@
+/**
+ * Recipes Store - Zustand
+ *
+ * Cache paginado de receitas com TTL de 2 minutos.
+ * Suporta optimistic updates para delete operations.
+ */
 import { create } from 'zustand'
 import { Recipe, PaginationInfo } from '@/lib/api'
 
