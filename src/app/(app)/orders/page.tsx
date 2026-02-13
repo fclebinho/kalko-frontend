@@ -21,10 +21,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { recipesApi, Recipe, ordersApi, OrderCalculation } from '@/lib/api'
+import { ordersApi, OrderCalculation } from '@/lib/api'
 import { generateOrderPdf } from '@/lib/generate-order-pdf'
 import { Plus, Trash2, Download, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRecipesForOrders } from '@/hooks/use-recipes-for-orders'
 
 interface OrderItem {
   id: string
@@ -36,8 +37,7 @@ interface OrderItem {
 }
 
 export default function OrdersPage() {
-  const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [loading, setLoading] = useState(true)
+  const { recipes, isValidating } = useRecipesForOrders()
   const [items, setItems] = useState<OrderItem[]>([])
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
@@ -45,14 +45,6 @@ export default function OrdersPage() {
   const [discountValue, setDiscountValue] = useState(0)
   const [customerName, setCustomerName] = useState('')
   const [recipeSearch, setRecipeSearch] = useState('')
-
-  useEffect(() => {
-    recipesApi
-      .list({ limit: 1000 })
-      .then((res) => setRecipes(res.data.data))
-      .catch(() => toast.error('Erro ao carregar receitas'))
-      .finally(() => setLoading(false))
-  }, [])
 
   // Recipes with sellingPrice defined
   const availableRecipes = useMemo(
@@ -176,14 +168,6 @@ export default function OrdersPage() {
     })
 
     toast.success('PDF do pedido gerado com sucesso')
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-muted-foreground">Carregando...</div>
-      </div>
-    )
   }
 
   return (

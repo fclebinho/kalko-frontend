@@ -123,7 +123,7 @@ export default function RecipesPage() {
         <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome..." />
 
         <DataTable
-          loading={loading}
+          loading={isValidating}
           empty={recipes.length === 0}
           emptyMessage="Nenhuma receita encontrada"
           emptyAction={

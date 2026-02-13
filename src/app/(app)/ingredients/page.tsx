@@ -40,19 +40,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ingredientsApi, Ingredient, PaginationInfo } from '@/lib/api'
+import { ingredientsApi, Ingredient } from '@/lib/api'
 import { PriceHistoryChart } from '@/components/price-history-chart'
 import { CSVImportDialog } from '@/components/csv-import-dialog'
 import { TablePagination } from '@/components/table-pagination'
 import { Plus, Pencil, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
+import { useIngredients } from '@/hooks/use-ingredients'
 
 export default function IngredientsPage() {
-  const [ingredients, setIngredients] = useState<Ingredient[]>([])
-  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
+  const { ingredients, pagination, isValidating, deleteIngredient, refetch, invalidateAll } = useIngredients(search, page)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [ingredientToDelete, setIngredientToDelete] = useState<{ id: string; name: string; usedInRecipes: number } | null>(null)
@@ -71,22 +70,6 @@ export default function IngredientsPage() {
     setPage(1)
   }, [search])
 
-  useEffect(() => {
-    loadIngredients()
-  }, [search, page])
-
-  const loadIngredients = async () => {
-    try {
-      setLoading(true)
-      const response = await ingredientsApi.list({ search, page })
-      setIngredients(response.data.data)
-      setPagination(response.data.pagination)
-    } catch (error) {
-      toast.error('Erro ao carregar ingredientes')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleOpenDialog = (ingredient?: Ingredient) => {
     if (ingredient) {
@@ -133,7 +116,8 @@ export default function IngredientsPage() {
         toast.success('Ingrediente criado com sucesso')
       }
       handleCloseDialog()
-      loadIngredients()
+      invalidateAll()
+      refetch()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao salvar ingrediente')
     }
@@ -148,11 +132,7 @@ export default function IngredientsPage() {
     if (!ingredientToDelete) return
 
     try {
-      await ingredientsApi.delete(ingredientToDelete.id)
-      toast.success('Ingrediente excluído com sucesso')
-      loadIngredients()
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao excluir ingrediente')
+      await deleteIngredient(ingredientToDelete.id, ingredientToDelete.name)
     } finally {
       setDeleteDialogOpen(false)
       setIngredientToDelete(null)
@@ -191,7 +171,7 @@ export default function IngredientsPage() {
         </SearchBar>
 
         <DataTable
-          loading={loading}
+          loading={isValidating}
           empty={filteredIngredients.length === 0}
           emptyMessage="Nenhum ingrediente encontrado"
           emptyAction={
@@ -441,7 +421,10 @@ export default function IngredientsPage() {
       <CSVImportDialog
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
-        onImportComplete={loadIngredients}
+        onImportComplete={() => {
+          invalidateAll()
+          refetch()
+        }}
       />
     </>
   )
