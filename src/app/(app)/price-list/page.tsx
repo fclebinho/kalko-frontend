@@ -22,22 +22,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { recipesApi, Recipe, PaginationInfo } from '@/lib/api'
+import { Recipe } from '@/lib/api'
 import { ArrowUpDown, AlertCircle, AlertTriangle, CheckCircle, Download } from 'lucide-react'
 import { generatePriceListPdf } from '@/lib/generate-price-list-pdf'
-import { toast } from 'sonner'
 import Link from 'next/link'
 import { isWeightVolumeUnit } from '@/lib/utils'
 import { TablePagination } from '@/components/table-pagination'
+import { useRecipes } from '@/hooks/use-recipes'
 
 type MarginFilter = 'all' | 'loss' | 'low' | 'good' | 'no-price'
 
 export default function PriceListPage() {
-  const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
+  const { recipes, pagination, isValidating } = useRecipes(search, page)
   const [marginFilter, setMarginFilter] = useState<MarginFilter>('all')
   const [sortField, setSortField] = useState<string>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -45,23 +43,6 @@ export default function PriceListPage() {
   useEffect(() => {
     setPage(1)
   }, [search])
-
-  useEffect(() => {
-    loadRecipes()
-  }, [search, page])
-
-  const loadRecipes = async () => {
-    try {
-      setLoading(true)
-      const response = await recipesApi.list({ search, page })
-      setRecipes(response.data.data)
-      setPagination(response.data.pagination)
-    } catch (error) {
-      toast.error('Erro ao carregar receitas')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const getMarginBadge = (recipe: Recipe) => {
     if (!recipe.sellingPrice || recipe.margin === null || recipe.margin === undefined) {
@@ -209,7 +190,7 @@ export default function PriceListPage() {
 
         {/* Price List Table */}
         <DataTable
-          loading={loading}
+          loading={isValidating}
           empty={sortedRecipes.length === 0}
           emptyMessage="Nenhum produto encontrado"
         >

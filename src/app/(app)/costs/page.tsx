@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,13 +24,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { costsApi, CostsSettings, FixedCost } from '@/lib/api'
+import { costsApi, FixedCost } from '@/lib/api'
 import { Plus, DollarSign, Clock, TrendingUp } from 'lucide-react'
 import { toast } from 'sonner'
+import { useCosts } from '@/hooks/use-costs'
 
 export default function CostsPage() {
-  const [settings, setSettings] = useState<CostsSettings | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { settings, isValidating, refetch, invalidate } = useCosts()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogType, setDialogType] = useState<'hours' | 'fixed' | 'variable'>('hours')
   const [formData, setFormData] = useState({
@@ -41,22 +41,6 @@ export default function CostsPage() {
   })
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; type: 'fixed' | 'variable'; name: string } | null>(null)
-
-  useEffect(() => {
-    loadSettings()
-  }, [])
-
-  const loadSettings = async () => {
-    try {
-      setLoading(true)
-      const response = await costsApi.getSettings()
-      setSettings(response.data)
-    } catch (error) {
-      toast.error('Erro ao carregar configurações')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleOpenDialog = (type: 'hours' | 'fixed' | 'variable') => {
     setDialogType(type)
@@ -99,7 +83,8 @@ export default function CostsPage() {
         toast.success('Custo variável adicionado')
       }
       setDialogOpen(false)
-      loadSettings()
+      invalidate()
+      refetch()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao salvar')
     }
@@ -125,7 +110,8 @@ export default function CostsPage() {
         await costsApi.deleteVariableCost(deleteTarget.id)
       }
       toast.success('Custo excluído')
-      loadSettings()
+      invalidate()
+      refetch()
     } catch (error) {
       toast.error('Erro ao excluir')
     } finally {
@@ -134,10 +120,15 @@ export default function CostsPage() {
     }
   }
 
-  if (loading) {
+  if (!settings) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-muted-foreground">Carregando...</div>
+      <div className="space-y-4">
+        <div className="h-20 bg-muted animate-pulse rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 bg-muted animate-pulse rounded" />
+          ))}
+        </div>
       </div>
     )
   }

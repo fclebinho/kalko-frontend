@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -30,6 +30,7 @@ import { toast } from 'sonner'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { PriceCalculator } from '@/components/price-calculator'
 import { PriceHistoryChart } from '@/components/price-history-chart'
+import { useRecipeDetail } from '@/hooks/use-recipe-detail'
 // Cálculos centralizados no backend - não usar isWeightVolumeUnit
 
 interface RecipeDetails {
@@ -108,29 +109,8 @@ export default function RecipeDetailsPage() {
   const pathname = usePathname()
   const id = pathname?.split('/').pop() || ''
 
-  const [recipe, setRecipe] = useState<RecipeDetails | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { recipe, isValidating, refetch } = useRecipeDetail(id)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-
-  useEffect(() => {
-    if (id) {
-      loadRecipe()
-    }
-  }, [id])
-
-  const loadRecipe = async () => {
-    try {
-      setLoading(true)
-      const response = await recipesApi.get(id)
-      setRecipe(response.data as RecipeDetails)
-    } catch (error: any) {
-      console.error('Erro ao carregar receita:', error)
-      const message = error.response?.data?.error || error.message || 'Erro ao carregar receita'
-      toast.error(message)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const getMarginColor = (margin?: number) => {
     if (!margin) return 'default'
@@ -167,16 +147,21 @@ export default function RecipeDetailsPage() {
     try {
       await recipesApi.updatePrice(id, price)
       toast.success('Preço atualizado com sucesso!')
-      loadRecipe() // Recarregar para ver os novos cálculos
+      refetch() // Recarregar para ver os novos cálculos
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao atualizar preço')
     }
   }
 
-  if (loading) {
+  if (!recipe) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-muted-foreground">Carregando...</div>
+      <div className="space-y-4">
+        <div className="h-20 bg-muted animate-pulse rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 bg-muted animate-pulse rounded" />
+          ))}
+        </div>
       </div>
     )
   }
@@ -427,7 +412,7 @@ export default function RecipeDetailsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {calculations.breakdown.ingredients.map((ing, idx) => (
+                  {calculations.breakdown.ingredients.map((ing: any, idx: number) => (
                     <TableRow key={ing.ingredientId || ing.subRecipeId || idx}>
                       <TableCell className="font-medium">
                         <span className="flex items-center gap-2">
