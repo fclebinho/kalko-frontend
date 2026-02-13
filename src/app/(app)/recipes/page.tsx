@@ -23,18 +23,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { recipesApi, Recipe, PaginationInfo } from '@/lib/api'
+import { recipesApi } from '@/lib/api'
 import { Plus, Eye, Trash2, Copy, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { TablePagination } from '@/components/table-pagination'
+import { useRecipes } from '@/hooks/use-recipes'
 
 export default function RecipesPage() {
-  const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
+  const { recipes, pagination, isValidating, deleteRecipe, refetch, invalidateAll } = useRecipes(search, page)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
@@ -45,23 +44,6 @@ export default function RecipesPage() {
     setPage(1)
   }, [search])
 
-  useEffect(() => {
-    loadRecipes()
-  }, [search, page])
-
-  const loadRecipes = async () => {
-    try {
-      setLoading(true)
-      const response = await recipesApi.list({ search, page })
-      setRecipes(response.data.data)
-      setPagination(response.data.pagination)
-    } catch (error) {
-      toast.error('Erro ao carregar receitas')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleDelete = (id: string, name: string) => {
     setDeleteTarget({ id, name })
     setDeleteDialogOpen(true)
@@ -71,12 +53,7 @@ export default function RecipesPage() {
     if (!deleteTarget) return
 
     try {
-      await recipesApi.delete(deleteTarget.id)
-      toast.success('Receita excluída')
-      loadRecipes()
-    } catch (error: any) {
-      const message = error.response?.data?.message || error.response?.data?.error || 'Erro ao excluir receita'
-      toast.error(message)
+      await deleteRecipe(deleteTarget.id, deleteTarget.name)
     } finally {
       setDeleteDialogOpen(false)
       setDeleteTarget(null)
@@ -94,7 +71,8 @@ export default function RecipesPage() {
     try {
       await recipesApi.duplicate(duplicateTarget.id)
       toast.success(`Receita "${duplicateTarget.name}" duplicada com sucesso`)
-      loadRecipes()
+      invalidateAll()
+      refetch()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao duplicar receita')
     } finally {
@@ -108,7 +86,8 @@ export default function RecipesPage() {
       setRecalculating(true)
       const response = await recipesApi.recalculateAll()
       toast.success(`${response.data.count} receitas recalculadas com sucesso`)
-      loadRecipes()
+      invalidateAll()
+      refetch()
     } catch (error: any) {
       toast.error('Erro ao recalcular receitas')
     } finally {
