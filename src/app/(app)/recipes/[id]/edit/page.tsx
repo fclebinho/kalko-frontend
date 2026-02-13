@@ -19,6 +19,8 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { IngredientSelector } from '@/components/ingredient-selector'
+import { useRecipeDetailStore } from '@/stores/use-recipe-detail-store'
+import { useRecipesStore } from '@/stores/use-recipes-store'
 
 interface RecipeIngredient {
   ingredientId?: string
@@ -61,6 +63,8 @@ export default function EditRecipePage() {
   const router = useRouter()
   const pathname = usePathname()
   const id = pathname?.split('/').filter(Boolean)[1] || ''
+  const invalidateRecipeDetails = useRecipeDetailStore(state => state.invalidate)
+  const invalidateRecipesList = useRecipesStore(state => state.invalidate)
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -149,6 +153,10 @@ export default function EditRecipePage() {
       if (sellingPrice !== null && sellingPrice > 0) {
         await recipesApi.updatePrice(id, sellingPrice)
       }
+
+      // Invalidar caches para forçar refetch dos dados atualizados
+      invalidateRecipeDetails(id) // Invalida cache deste detalhe específico
+      invalidateRecipesList() // Invalida lista de receitas
 
       toast.success('Receita atualizada com sucesso!')
       router.push(`/recipes/${id}`)
