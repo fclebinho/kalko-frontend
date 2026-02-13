@@ -131,6 +131,10 @@ export default function IngredientsPage() {
           const recipesUpdated = response.data?.recipesUpdated || 0
           if (recipesUpdated > 0) {
             invalidateRecipeCaches()
+            toast.info(`🔄 Recalculando ${recipesUpdated} receita${recipesUpdated > 1 ? 's' : ''} afetada${recipesUpdated > 1 ? 's' : ''}...`, {
+              description: 'Os custos serão atualizados em alguns segundos',
+              duration: 4000
+            })
           }
           handleCloseDialog()
           invalidateAll()
