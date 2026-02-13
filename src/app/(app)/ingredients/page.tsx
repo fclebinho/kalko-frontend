@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/page-header'
@@ -22,16 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -45,20 +35,43 @@ import { PriceHistoryChart } from '@/components/price-history-chart'
 import { CSVImportDialog } from '@/components/csv-import-dialog'
 import { TablePagination } from '@/components/table-pagination'
 import { Plus, Pencil, Trash2, Upload } from 'lucide-react'
-import { toast } from 'sonner'
 import { useIngredients } from '@/hooks/use-ingredients'
 import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
+import { useDialog } from '@/hooks/use-dialog'
+import { useAsyncOperation } from '@/hooks/use-async-operation'
+import { useConfirmDelete } from '@/hooks/use-confirm-delete'
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 
 export default function IngredientsPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const { ingredients, pagination, isValidating, deleteIngredient, refetch, invalidateAll } = useIngredients(search, page)
+  const { ingredients, pagination, isValidating, refetch, invalidateAll } = useIngredients(search, page)
   const invalidateRecipeCaches = useInvalidateRecipeCaches()
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [ingredientToDelete, setIngredientToDelete] = useState<{ id: string; name: string; usedInRecipes: number } | null>(null)
+
+  // 🎯 SOLID: Hooks reutilizáveis para dialogs
+  const formDialog = useDialog()
+  const importDialog = useDialog()
+
+  // 🎯 SOLID: Hook para operações assíncronas
+  const { execute: saveIngredient, isLoading: isSaving } = useAsyncOperation()
+
+  // 🎯 SOLID: Hook para confirmação de delete
+  const confirmDelete = useConfirmDelete<Ingredient>({
+    onConfirm: async (ingredient) => {
+      await ingredientsApi.delete(ingredient.id)
+    },
+    successMessage: (item) => `${item.name} excluído com sucesso`,
+    getWarningMessage: (item) =>
+      item.usedInRecipes && item.usedInRecipes > 0
+        ? `O ingrediente "${item.name}" está sendo usado em ${item.usedInRecipes} receita(s). Remova-o das receitas antes de excluir.`
+        : null,
+    onSuccess: () => {
+      invalidateAll()
+      refetch()
+    }
+  })
+
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [supplierFilter, setSupplierFilter] = useState<string>('all')
   const [formData, setFormData] = useState({
     name: '',
@@ -68,9 +81,10 @@ export default function IngredientsPage() {
     supplier: ''
   })
 
-  useEffect(() => {
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
     setPage(1)
-  }, [search])
+  }
 
 
   const handleOpenDialog = (ingredient?: Ingredient) => {
@@ -93,52 +107,47 @@ export default function IngredientsPage() {
         supplier: ''
       })
     }
-    setDialogOpen(true)
+    formDialog.open()
   }
 
   const handleCloseDialog = () => {
-    setDialogOpen(false)
+    formDialog.close()
     setEditingId(null)
   }
 
+  // 🎯 DRY: Operação assíncrona com toast automático
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    try {
-      if (editingId) {
-        const response = await ingredientsApi.update(editingId, formData)
-        const recipesUpdated = (response.data as any).recipesUpdated || 0
-        if (recipesUpdated > 0) {
-          toast.success(`Ingrediente atualizado. ${recipesUpdated} receita(s) recalculada(s)`)
-          invalidateRecipeCaches() // Invalida lista, detalhes e dashboard
-        } else {
-          toast.success('Ingrediente atualizado com sucesso')
+    if (editingId) {
+      // Update
+      await saveIngredient({
+        operation: async () => {
+          const response = await ingredientsApi.update(editingId, formData)
+          return response
+        },
+        successMessage: 'Ingrediente atualizado com sucesso',
+        onSuccess: (response: any) => {
+          const recipesUpdated = response.data?.recipesUpdated || 0
+          if (recipesUpdated > 0) {
+            invalidateRecipeCaches()
+          }
+          handleCloseDialog()
+          invalidateAll()
+          refetch()
         }
-      } else {
-        await ingredientsApi.create(formData)
-        toast.success('Ingrediente criado com sucesso')
-      }
-      handleCloseDialog()
-      invalidateAll()
-      refetch()
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao salvar ingrediente')
-    }
-  }
-
-  const handleDeleteClick = (ingredient: Ingredient) => {
-    setIngredientToDelete({ id: ingredient.id, name: ingredient.name, usedInRecipes: ingredient.usedInRecipes || 0 })
-    setDeleteDialogOpen(true)
-  }
-
-  const handleDeleteConfirm = async () => {
-    if (!ingredientToDelete) return
-
-    try {
-      await deleteIngredient(ingredientToDelete.id, ingredientToDelete.name)
-    } finally {
-      setDeleteDialogOpen(false)
-      setIngredientToDelete(null)
+      })
+    } else {
+      // Create
+      await saveIngredient({
+        operation: () => ingredientsApi.create(formData),
+        successMessage: 'Ingrediente criado com sucesso',
+        onSuccess: () => {
+          handleCloseDialog()
+          invalidateAll()
+          refetch()
+        }
+      })
     }
   }
 
@@ -149,7 +158,7 @@ export default function IngredientsPage() {
   return (
     <>
       <PageHeader title="Ingredientes" description="Gerencie os ingredientes e seus custos">
-          <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+          <Button variant="outline" onClick={importDialog.open}>
             <Upload className="mr-2 h-4 w-4" />
             Importar CSV
           </Button>
@@ -159,7 +168,7 @@ export default function IngredientsPage() {
           </Button>
         </PageHeader>
 
-        <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome...">
+        <SearchBar value={search} onChange={handleSearchChange} placeholder="Buscar por nome...">
           <Select value={supplierFilter} onValueChange={setSupplierFilter}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filtrar por fornecedor" />
@@ -226,7 +235,7 @@ export default function IngredientsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDeleteClick(ingredient)}
+                            onClick={() => confirmDelete.prompt(ingredient)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -248,7 +257,7 @@ export default function IngredientsPage() {
         )}
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={formDialog.isOpen} onOpenChange={formDialog.setIsOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -361,69 +370,34 @@ export default function IngredientsPage() {
             </div>
 
             <DialogFooter className="mt-6">
-              <Button type="button" variant="outline" onClick={handleCloseDialog}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCloseDialog}
+                disabled={isSaving}
+              >
                 Cancelar
               </Button>
-              <Button type="submit">
-                {editingId ? 'Atualizar' : 'Criar'}
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Salvando...' : editingId ? 'Atualizar' : 'Criar'}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {ingredientToDelete && ingredientToDelete.usedInRecipes > 0
-                ? 'Não é possível excluir'
-                : 'Confirmar Exclusão'}
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div>
-                {ingredientToDelete && ingredientToDelete.usedInRecipes > 0 ? (
-                  <>
-                    <p>
-                      O ingrediente <strong>{ingredientToDelete.name}</strong> está sendo usado em{' '}
-                      <strong>{ingredientToDelete.usedInRecipes} receita(s)</strong>.
-                    </p>
-                    <p className="mt-2">
-                      Remova este ingrediente das receitas antes de excluí-lo.
-                    </p>
-                  </>
-                ) : (
-                  <p>
-                    Tem certeza que deseja excluir <strong>{ingredientToDelete?.name}</strong>?
-                    Esta ação não pode ser desfeita.
-                  </p>
-                )}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            {ingredientToDelete && ingredientToDelete.usedInRecipes > 0 ? (
-              <AlertDialogCancel>Entendi</AlertDialogCancel>
-            ) : (
-              <>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDeleteConfirm}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Excluir
-                </AlertDialogAction>
-              </>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* 🎯 DRY: Componente reutilizável de confirmação */}
+      <ConfirmDeleteDialog
+        {...confirmDelete.dialogProps}
+        description={confirmDelete.pendingItem && !confirmDelete.warningMessage && (
+          <>Tem certeza que deseja excluir <strong>{confirmDelete.pendingItem.name}</strong>? Esta ação não pode ser desfeita.</>
+        )}
+      />
 
       {/* CSV Import Dialog */}
       <CSVImportDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
+        open={importDialog.isOpen}
+        onOpenChange={importDialog.setIsOpen}
         onImportComplete={() => {
           invalidateAll()
           invalidateRecipeCaches() // Invalida lista, detalhes e dashboard
