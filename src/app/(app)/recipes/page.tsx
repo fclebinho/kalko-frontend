@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/page-header'
 import { SearchBar } from '@/components/search-bar'
@@ -14,88 +14,94 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { recipesApi } from '@/lib/api'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { recipesApi, Recipe } from '@/lib/api'
 import { Plus, Eye, Trash2, Copy, RefreshCw } from 'lucide-react'
-import { toast } from 'sonner'
 import Link from 'next/link'
 import { TablePagination } from '@/components/table-pagination'
 import { useRecipes } from '@/hooks/use-recipes'
 import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
+import { useDialog } from '@/hooks/use-dialog'
+import { useAsyncOperation } from '@/hooks/use-async-operation'
+import { useConfirmDelete } from '@/hooks/use-confirm-delete'
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 
 export default function RecipesPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const { recipes, pagination, isValidating, deleteRecipe, refetch, invalidateAll } = useRecipes(search, page)
+  const { recipes, pagination, isValidating, refetch, invalidateAll } = useRecipes(search, page)
   const invalidateRecipeCaches = useInvalidateRecipeCaches()
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
-  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
-  const [duplicateTarget, setDuplicateTarget] = useState<{ id: string; name: string } | null>(null)
-  const [recalculating, setRecalculating] = useState(false)
 
-  useEffect(() => {
-    setPage(1)
-  }, [search])
+  // 🎯 SOLID: Hooks reutilizáveis
+  const duplicateDialog = useDialog()
+  const { execute: recalculateAll, isLoading: isRecalculating } = useAsyncOperation()
+  const { execute: duplicateRecipe, isLoading: isDuplicating } = useAsyncOperation()
 
-  const handleDelete = (id: string, name: string) => {
-    setDeleteTarget({ id, name })
-    setDeleteDialogOpen(true)
-  }
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return
-
-    try {
-      await deleteRecipe(deleteTarget.id, deleteTarget.name)
-    } finally {
-      setDeleteDialogOpen(false)
-      setDeleteTarget(null)
+  // 🎯 SOLID: Hook para confirmação de delete
+  const confirmDelete = useConfirmDelete<Recipe>({
+    onConfirm: async (recipe) => {
+      await recipesApi.delete(recipe.id)
+    },
+    successMessage: (recipe) => `${recipe.name} excluída com sucesso`,
+    onSuccess: () => {
+      invalidateAll()
+      refetch()
     }
+  })
+
+  const [duplicateTarget, setDuplicateTarget] = useState<{ id: string; name: string } | null>(null)
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setPage(1)
   }
 
   const handleDuplicate = (id: string, name: string) => {
     setDuplicateTarget({ id, name })
-    setDuplicateDialogOpen(true)
+    duplicateDialog.open()
   }
 
   const confirmDuplicate = async () => {
     if (!duplicateTarget) return
 
-    try {
-      await recipesApi.duplicate(duplicateTarget.id)
-      toast.success(`Receita "${duplicateTarget.name}" duplicada com sucesso`)
-      invalidateAll()
-      refetch()
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao duplicar receita')
-    } finally {
-      setDuplicateDialogOpen(false)
-      setDuplicateTarget(null)
-    }
+    await duplicateRecipe({
+      operation: async () => {
+        await recipesApi.duplicate(duplicateTarget.id)
+        return duplicateTarget
+      },
+      successMessage: `Receita "${duplicateTarget.name}" duplicada com sucesso`,
+      onSuccess: () => {
+        invalidateAll()
+        invalidateRecipeCaches()
+        refetch()
+        duplicateDialog.close()
+        setDuplicateTarget(null)
+      },
+      onError: () => {
+        // Mantém dialog aberto em caso de erro
+      }
+    })
   }
 
   const handleRecalculateAll = async () => {
-    try {
-      setRecalculating(true)
-      const response = await recipesApi.recalculateAll()
-      toast.success(`${response.data.count} receitas recalculadas com sucesso`)
-      invalidateAll() // Invalida lista de receitas
-      invalidateRecipeCaches() // Invalida detalhes e dashboard
-      refetch()
-    } catch (error: any) {
-      toast.error('Erro ao recalcular receitas')
-    } finally {
-      setRecalculating(false)
-    }
+    await recalculateAll({
+      operation: async () => {
+        const response = await recipesApi.recalculateAll()
+        return response.data.count
+      },
+      successMessage: (count) => `${count} receitas recalculadas com sucesso`,
+      onSuccess: () => {
+        invalidateAll()
+        invalidateRecipeCaches()
+        refetch()
+      }
+    })
   }
 
   const getMarginColor = (margin?: number | null) => {
@@ -110,8 +116,8 @@ export default function RecipesPage() {
     <>
         <PageHeader title="Receitas" description="Crie e gerencie receitas com cálculo automático de custos">
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleRecalculateAll} disabled={recalculating}>
-              <RefreshCw className={`mr-2 h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
+            <Button variant="outline" onClick={handleRecalculateAll} disabled={isRecalculating}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRecalculating ? 'animate-spin' : ''}`} />
               Recalcular Todas
             </Button>
             <Link href="/recipes/new">
@@ -123,7 +129,7 @@ export default function RecipesPage() {
           </div>
         </PageHeader>
 
-        <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome..." />
+        <SearchBar value={search} onChange={handleSearchChange} placeholder="Buscar por nome..." />
 
         <DataTable
           loading={isValidating}
@@ -188,6 +194,7 @@ export default function RecipesPage() {
                             size="icon"
                             title="Duplicar"
                             onClick={() => handleDuplicate(recipe.id, recipe.name)}
+                            disabled={isDuplicating}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -195,7 +202,8 @@ export default function RecipesPage() {
                             variant="ghost"
                             size="icon"
                             title="Excluir"
-                            onClick={() => handleDelete(recipe.id, recipe.name)}
+                            onClick={() => confirmDelete.prompt(recipe)}
+                            disabled={confirmDelete.isLoading}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
@@ -217,40 +225,37 @@ export default function RecipesPage() {
         )}
 
       {/* Duplicate Confirmation */}
-      <AlertDialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Duplicar receita</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={duplicateDialog.isOpen} onOpenChange={duplicateDialog.setIsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Duplicar receita</DialogTitle>
+            <DialogDescription>
               Deseja duplicar a receita &quot;{duplicateTarget?.name}&quot;? Uma cópia será criada com todos os ingredientes.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDuplicate}>
-              Duplicar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={duplicateDialog.close} disabled={isDuplicating}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmDuplicate} disabled={isDuplicating}>
+              {isDuplicating ? 'Duplicando...' : 'Duplicar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir receita</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir &quot;{deleteTarget?.name}&quot;? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        {...confirmDelete.dialogProps}
+        title="Excluir receita"
+        description={
+          confirmDelete.pendingItem && (
+            <>
+              Tem certeza que deseja excluir <strong>{confirmDelete.pendingItem.name}</strong>? Esta ação não pode ser desfeita.
+            </>
+          )
+        }
+      />
     </>
   )
 }
