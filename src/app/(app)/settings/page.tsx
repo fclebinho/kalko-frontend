@@ -9,22 +9,21 @@ import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { billingApi, Subscription, Plan, settingsApi } from '@/lib/api'
 import { OnboardingWizard } from '@/components/onboarding-wizard'
 import { PricingTable } from '@/components/pricing-table'
 import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, QrCode, AlertTriangle, ChefHat, Package, GraduationCap, Sparkles } from 'lucide-react'
-import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { useDialog } from '@/hooks/use-dialog'
+import { useAsyncOperation } from '@/hooks/use-async-operation'
 
 function SettingsContent() {
   const router = useRouter()
@@ -37,7 +36,6 @@ function SettingsContent() {
   // Settings state
   const [priceAlerts, setPriceAlerts] = useState(true)
   const [settingsLoading, setSettingsLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -45,15 +43,19 @@ function SettingsContent() {
   // Billing state
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [billingLoading, setBillingLoading] = useState(true)
-  const [processingPortal, setProcessingPortal] = useState(false)
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [cancelFeedback, setCancelFeedback] = useState('')
-  const [canceling, setCanceling] = useState(false)
 
   // Plans state
   const [plans, setPlans] = useState<Plan[]>([])
   const [plansLoading, setPlansLoading] = useState(true)
   const [processingPlan, setProcessingPlan] = useState<string | null>(null)
+
+  // 🎯 SOLID: Hooks reutilizáveis
+  const cancelDialog = useDialog()
+  const { execute: toggleAlerts, isLoading: isSavingAlerts } = useAsyncOperation()
+  const { execute: openPortal, isLoading: isOpeningPortal } = useAsyncOperation()
+  const { execute: cancelSubscription, isLoading: isCanceling } = useAsyncOperation()
+  const { execute: reactivateSubscription, isLoading: isReactivating } = useAsyncOperation()
 
   useEffect(() => {
     // Load settings
@@ -93,60 +95,60 @@ function SettingsContent() {
 
   const handleToggle = async () => {
     const newValue = !priceAlerts
-    setSaving(true)
-    try {
-      await settingsApi.updateEmailPreferences({ priceAlerts: newValue })
-      setPriceAlerts(newValue)
-      toast.success(newValue ? 'Alertas de preco ativados' : 'Alertas de preco desativados')
-    } catch {
-      toast.error('Erro ao atualizar preferencias')
-    } finally {
-      setSaving(false)
-    }
+    await toggleAlerts({
+      operation: async () => {
+        await settingsApi.updateEmailPreferences({ priceAlerts: newValue })
+        return newValue
+      },
+      successMessage: newValue ? 'Alertas de preco ativados' : 'Alertas de preco desativados',
+      errorMessage: 'Erro ao atualizar preferencias',
+      onSuccess: (result) => {
+        setPriceAlerts(result)
+      }
+    })
   }
 
   async function openCustomerPortal() {
-    try {
-      setProcessingPortal(true)
-      const response = await billingApi.getPortalUrl()
-      if (response.data.url) {
-        window.location.href = response.data.url
+    await openPortal({
+      operation: async () => {
+        const response = await billingApi.getPortalUrl()
+        return response.data.url
+      },
+      errorMessage: 'Erro ao abrir portal de gerenciamento',
+      onSuccess: (url) => {
+        if (url) {
+          window.location.href = url
+        }
       }
-    } catch (error: any) {
-      console.error('Erro ao abrir portal:', error)
-      toast.error('Erro ao abrir portal de gerenciamento')
-      setProcessingPortal(false)
-    }
+    })
   }
 
   async function handleCancelSubscription() {
-    try {
-      setCanceling(true)
-      const response = await billingApi.cancelSubscription(cancelFeedback || undefined)
-      toast.success(response.data.message || 'Assinatura cancelada')
-      setCancelDialogOpen(false)
-      setCancelFeedback('')
-      loadSubscription()
-    } catch (error: any) {
-      console.error('Erro ao cancelar:', error)
-      toast.error(error.response?.data?.error || 'Erro ao cancelar assinatura')
-    } finally {
-      setCanceling(false)
-    }
+    await cancelSubscription({
+      operation: async () => {
+        const response = await billingApi.cancelSubscription(cancelFeedback || undefined)
+        return response.data.message
+      },
+      successMessage: (message) => message || 'Assinatura cancelada',
+      onSuccess: () => {
+        cancelDialog.close()
+        setCancelFeedback('')
+        loadSubscription()
+      }
+    })
   }
 
   async function handleReactivateSubscription() {
-    try {
-      setCanceling(true)
-      const response = await billingApi.reactivateSubscription()
-      toast.success(response.data.message || 'Assinatura reativada')
-      loadSubscription()
-    } catch (error: any) {
-      console.error('Erro ao reativar:', error)
-      toast.error(error.response?.data?.error || 'Erro ao reativar assinatura')
-    } finally {
-      setCanceling(false)
-    }
+    await reactivateSubscription({
+      operation: async () => {
+        const response = await billingApi.reactivateSubscription()
+        return response.data.message
+      },
+      successMessage: (message) => message || 'Assinatura reativada',
+      onSuccess: () => {
+        loadSubscription()
+      }
+    })
   }
 
   async function handleSelectPlan(planId: string, gateway: 'stripe' | 'abacatepay') {
@@ -236,9 +238,9 @@ function SettingsContent() {
                     variant={priceAlerts ? 'default' : 'outline'}
                     size="sm"
                     onClick={handleToggle}
-                    disabled={saving}
+                    disabled={isSavingAlerts}
                   >
-                    {priceAlerts ? 'Ativado' : 'Desativado'}
+                    {isSavingAlerts ? 'Salvando...' : priceAlerts ? 'Ativado' : 'Desativado'}
                   </Button>
                 </div>
               )}
@@ -506,25 +508,25 @@ function SettingsContent() {
                         variant="outline"
                         className="w-full"
                         onClick={openCustomerPortal}
-                        disabled={processingPortal}
+                        disabled={isOpeningPortal}
                       >
                         <CreditCard className="mr-2 h-4 w-4" />
-                        {processingPortal ? 'Abrindo...' : 'Gerenciar Pagamento'}
+                        {isOpeningPortal ? 'Abrindo...' : 'Gerenciar Pagamento'}
                       </Button>
 
                       {subscription.cancelAtPeriodEnd ? (
                         <Button
                           className="w-full"
                           onClick={handleReactivateSubscription}
-                          disabled={canceling}
+                          disabled={isReactivating}
                         >
-                          {canceling ? 'Reativando...' : 'Reativar Assinatura'}
+                          {isReactivating ? 'Reativando...' : 'Reativar Assinatura'}
                         </Button>
                       ) : (
                         <Button
                           variant="ghost"
                           className="w-full text-destructive hover:text-destructive"
-                          onClick={() => setCancelDialogOpen(true)}
+                          onClick={cancelDialog.open}
                         >
                           Cancelar Assinatura
                         </Button>
@@ -556,11 +558,11 @@ function SettingsContent() {
 
           {/* Cancel Dialog */}
           {subscription && (
-            <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Cancelar Assinatura</AlertDialogTitle>
-                  <AlertDialogDescription asChild>
+            <Dialog open={cancelDialog.isOpen} onOpenChange={cancelDialog.setIsOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Cancelar Assinatura</DialogTitle>
+                  <DialogDescription asChild>
                     <div className="space-y-3">
                       <p>
                         Tem certeza que deseja cancelar sua assinatura <strong>{planName}</strong>?
@@ -584,20 +586,22 @@ function SettingsContent() {
                         />
                       </div>
                     </div>
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={canceling}>Manter Assinatura</AlertDialogCancel>
-                  <AlertDialogAction
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={cancelDialog.close} disabled={isCanceling}>
+                    Manter Assinatura
+                  </Button>
+                  <Button
                     onClick={handleCancelSubscription}
-                    disabled={canceling}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    disabled={isCanceling}
+                    variant="destructive"
                   >
-                    {canceling ? 'Cancelando...' : 'Confirmar Cancelamento'}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    {isCanceling ? 'Cancelando...' : 'Confirmar Cancelamento'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           )}
         </TabsContent>
       </Tabs>
