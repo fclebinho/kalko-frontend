@@ -1,64 +1,42 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { dashboardApi, analyticsApi, DashboardData, TopIngredient } from '@/lib/api'
 import { Package, ChefHat, DollarSign, TrendingUp, AlertCircle, AlertTriangle, TrendingDown } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { toast } from 'sonner'
 import Link from 'next/link'
+import { useDashboard } from '@/hooks/use-dashboard'
 
 export default function Dashboard() {
   const { user } = useUser()
-  const [data, setData] = useState<DashboardData | null>(null)
-  const [topIngredients, setTopIngredients] = useState<TopIngredient[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data, topIngredients, isValidating } = useDashboard()
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
 
-  useEffect(() => {
-    loadDashboard()
-  }, [])
-
-  const loadDashboard = async () => {
-    try {
-      setLoading(true)
-      const [dashboardRes, ingredientsRes] = await Promise.all([
-        dashboardApi.get(),
-        analyticsApi.getTopIngredients().catch(() => ({ data: { data: [] } })),
-      ])
-      setData(dashboardRes.data)
-      setTopIngredients(ingredientsRes.data.data)
-    } catch (error: any) {
-      console.error('Erro ao carregar dashboard:', error)
-      toast.error('Erro ao carregar dashboard')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-muted-foreground">Carregando...</div>
-      </div>
-    )
-  }
-
   if (!data) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>Erro ao carregar dados do dashboard</AlertDescription>
-      </Alert>
+      <div className="space-y-4">
+        <div className="h-20 bg-muted animate-pulse rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-24 bg-muted animate-pulse rounded" />
+          ))}
+        </div>
+      </div>
     )
   }
 
   return (
     <>
+      {/* Indicador sutil de refetch */}
+      {isValidating && (
+        <div className="fixed top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-md text-sm animate-pulse z-50">
+          Atualizando...
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold">{greeting}, {user?.firstName || 'Usuario'}!</h1>
         <p className="text-muted-foreground mt-1">Aqui esta o resumo do seu negocio</p>
