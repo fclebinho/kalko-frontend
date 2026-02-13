@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 
 interface AsyncOperationOptions<T = unknown> {
   operation: () => Promise<T>
-  successMessage?: string
+  successMessage?: string | ((result: T) => string)
   errorMessage?: string
   onSuccess?: (result: T) => void | Promise<void>
   onError?: (error: unknown) => void
@@ -51,7 +51,10 @@ export function useAsyncOperation() {
       const result = await operation()
 
       if (successMessage) {
-        toast.success(successMessage)
+        const message = typeof successMessage === 'function'
+          ? successMessage(result)
+          : successMessage
+        toast.success(message)
       }
 
       if (onSuccess) {

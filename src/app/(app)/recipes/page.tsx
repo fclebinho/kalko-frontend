@@ -95,7 +95,7 @@ export default function RecipesPage() {
         const response = await recipesApi.recalculateAll()
         return response.data.count
       },
-      successMessage: (count) => `${count} receitas recalculadas com sucesso`,
+      successMessage: (count: number) => `${count} receitas recalculadas com sucesso`,
       onSuccess: () => {
         invalidateAll()
         invalidateRecipeCaches()

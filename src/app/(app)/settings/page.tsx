@@ -22,6 +22,7 @@ import { PricingTable } from '@/components/pricing-table'
 import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, QrCode, AlertTriangle, ChefHat, Package, GraduationCap, Sparkles } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { toast } from 'sonner'
 import { useDialog } from '@/hooks/use-dialog'
 import { useAsyncOperation } from '@/hooks/use-async-operation'
 
@@ -129,7 +130,7 @@ function SettingsContent() {
         const response = await billingApi.cancelSubscription(cancelFeedback || undefined)
         return response.data.message
       },
-      successMessage: (message) => message || 'Assinatura cancelada',
+      successMessage: (message: string) => message || 'Assinatura cancelada',
       onSuccess: () => {
         cancelDialog.close()
         setCancelFeedback('')
@@ -144,7 +145,7 @@ function SettingsContent() {
         const response = await billingApi.reactivateSubscription()
         return response.data.message
       },
-      successMessage: (message) => message || 'Assinatura reativada',
+      successMessage: (message: string) => message || 'Assinatura reativada',
       onSuccess: () => {
         loadSubscription()
       }
