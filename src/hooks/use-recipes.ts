@@ -4,15 +4,19 @@ import { recipesApi } from '@/lib/api'
 import { toast } from 'sonner'
 
 export function useRecipes(search: string, page: number) {
-  const { getCached, setRecipes, optimisticDelete, invalidate } = useRecipesStore()
+  const { setRecipes, optimisticDelete, invalidate } = useRecipesStore()
   const [isValidating, setIsValidating] = useState(false)
-  const cached = getCached(search, page)
+
+  // 🔥 FIX: Subscribe to cache reactively
+  const cacheKey = `${search}:${page}`
+  const cached = useRecipesStore(state => state.cache[cacheKey])
+  const isStale = cached ? (Date.now() - cached.timestamp > 2 * 60 * 1000) : true
 
   useEffect(() => {
-    if (!cached) {
+    if (!cached || isStale) {
       fetchRecipes()
     }
-  }, [search, page])
+  }, [search, page, cached, isStale])
 
   const fetchRecipes = async () => {
     try {
