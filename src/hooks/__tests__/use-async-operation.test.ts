@@ -6,19 +6,20 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useAsyncOperation } from '../use-async-operation'
+import { vi } from 'vitest'
 import { toast } from 'sonner'
 
 // Mock do toast
-jest.mock('sonner', () => ({
+vi.mock('sonner', () => ({
   toast: {
-    success: jest.fn(),
-    error: jest.fn()
+    success: vi.fn(),
+    error: vi.fn()
   }
 }))
 
 describe('useAsyncOperation', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('deve iniciar com isLoading = false e error = null', () => {
@@ -30,8 +31,8 @@ describe('useAsyncOperation', () => {
 
   it('deve executar operação com sucesso e mostrar toast', async () => {
     const { result } = renderHook(() => useAsyncOperation())
-    const mockOperation = jest.fn().mockResolvedValue('resultado')
-    const mockOnSuccess = jest.fn()
+    const mockOperation = vi.fn().mockResolvedValue('resultado')
+    const mockOnSuccess = vi.fn()
 
     await act(async () => {
       await result.current.execute({
@@ -52,7 +53,7 @@ describe('useAsyncOperation', () => {
     const { result } = renderHook(() => useAsyncOperation())
     let resolveOperation: (value: string) => void
 
-    const mockOperation = jest.fn(() => new Promise<string>((resolve) => {
+    const mockOperation = vi.fn(() => new Promise<string>((resolve) => {
       resolveOperation = resolve
     }))
 
@@ -77,8 +78,8 @@ describe('useAsyncOperation', () => {
   it('deve tratar erros e mostrar toast de erro', async () => {
     const { result } = renderHook(() => useAsyncOperation())
     const mockError = new Error('Erro de teste')
-    const mockOperation = jest.fn().mockRejectedValue(mockError)
-    const mockOnError = jest.fn()
+    const mockOperation = vi.fn().mockRejectedValue(mockError)
+    const mockOnError = vi.fn()
 
     await act(async () => {
       try {
@@ -107,7 +108,7 @@ describe('useAsyncOperation', () => {
         }
       }
     }
-    const mockOperation = jest.fn().mockRejectedValue(apiError)
+    const mockOperation = vi.fn().mockRejectedValue(apiError)
 
     await act(async () => {
       try {
@@ -124,8 +125,8 @@ describe('useAsyncOperation', () => {
 
   it('deve chamar onFinally sempre, mesmo com erro', async () => {
     const { result } = renderHook(() => useAsyncOperation())
-    const mockOnFinally = jest.fn()
-    const mockOperation = jest.fn().mockRejectedValue(new Error('erro'))
+    const mockOnFinally = vi.fn()
+    const mockOperation = vi.fn().mockRejectedValue(new Error('erro'))
 
     await act(async () => {
       try {
@@ -143,7 +144,7 @@ describe('useAsyncOperation', () => {
 
   it('deve resetar estado quando reset() é chamado', async () => {
     const { result } = renderHook(() => useAsyncOperation())
-    const mockOperation = jest.fn().mockRejectedValue(new Error('erro'))
+    const mockOperation = vi.fn().mockRejectedValue(new Error('erro'))
 
     // Executa e gera erro
     await act(async () => {
@@ -169,7 +170,7 @@ describe('useAsyncOperation', () => {
 
   it('não deve mostrar toast de sucesso se successMessage não for fornecido', async () => {
     const { result } = renderHook(() => useAsyncOperation())
-    const mockOperation = jest.fn().mockResolvedValue('ok')
+    const mockOperation = vi.fn().mockResolvedValue('ok')
 
     await act(async () => {
       await result.current.execute({

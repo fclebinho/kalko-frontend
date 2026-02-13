@@ -6,20 +6,34 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useConfirmDelete } from '../use-confirm-delete'
-import { toast } from 'sonner'
+import { vi } from 'vitest'
+import * as sonner from 'sonner'
 
 // Mock do toast
-jest.mock('sonner', () => ({
+vi.mock('sonner', () => ({
   toast: {
-    success: jest.fn(),
-    error: jest.fn()
+    success: vi.fn(),
+    error: vi.fn()
   }
 }))
 
 // Mock do useAsyncOperation
-jest.mock('../use-async-operation', () => ({
+vi.mock('../use-async-operation', () => ({
   useAsyncOperation: () => ({
-    execute: jest.fn((options) => options.operation()),
+    execute: vi.fn(async (options) => {
+      try {
+        const result = await options.operation()
+        if (options.onSuccess) {
+          options.onSuccess(result)
+        }
+        return result
+      } catch (error) {
+        if (options.onError) {
+          options.onError(error)
+        }
+        throw error
+      }
+    }),
     isLoading: false,
     error: null
   })
@@ -33,12 +47,12 @@ interface TestItem {
 
 describe('useConfirmDelete', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('deve iniciar com dialog fechado', () => {
     const { result } = renderHook(() => useConfirmDelete({
-      onConfirm: jest.fn()
+      onConfirm: vi.fn()
     }))
 
     expect(result.current.dialogProps.isOpen).toBe(false)
@@ -47,7 +61,7 @@ describe('useConfirmDelete', () => {
 
   it('deve abrir dialog quando prompt() é chamado', () => {
     const { result } = renderHook(() => useConfirmDelete<TestItem>({
-      onConfirm: jest.fn()
+      onConfirm: vi.fn()
     }))
 
     const item: TestItem = { id: '1', name: 'Item Teste' }
@@ -61,7 +75,7 @@ describe('useConfirmDelete', () => {
   })
 
   it('deve executar onConfirm quando confirm() é chamado', async () => {
-    const mockOnConfirm = jest.fn().mockResolvedValue(undefined)
+    const mockOnConfirm = vi.fn().mockResolvedValue(undefined)
     const { result } = renderHook(() => useConfirmDelete<TestItem>({
       onConfirm: mockOnConfirm,
       successMessage: 'Excluído!'
@@ -81,7 +95,7 @@ describe('useConfirmDelete', () => {
   })
 
   it('deve fechar dialog após confirmação bem-sucedida', async () => {
-    const mockOnConfirm = jest.fn().mockResolvedValue(undefined)
+    const mockOnConfirm = vi.fn().mockResolvedValue(undefined)
     const { result } = renderHook(() => useConfirmDelete<TestItem>({
       onConfirm: mockOnConfirm
     }))
@@ -104,8 +118,8 @@ describe('useConfirmDelete', () => {
   })
 
   it('deve chamar onSuccess após exclusão', async () => {
-    const mockOnConfirm = jest.fn().mockResolvedValue(undefined)
-    const mockOnSuccess = jest.fn()
+    const mockOnConfirm = vi.fn().mockResolvedValue(undefined)
+    const mockOnSuccess = vi.fn()
     const { result } = renderHook(() => useConfirmDelete<TestItem>({
       onConfirm: mockOnConfirm,
       onSuccess: mockOnSuccess
@@ -125,7 +139,7 @@ describe('useConfirmDelete', () => {
   })
 
   it('deve gerar mensagem de sucesso dinâmica', async () => {
-    const mockOnConfirm = jest.fn().mockResolvedValue(undefined)
+    const mockOnConfirm = vi.fn().mockResolvedValue(undefined)
     const { result } = renderHook(() => useConfirmDelete<TestItem>({
       onConfirm: mockOnConfirm,
       successMessage: (item) => `${item.name} foi excluído`
@@ -146,7 +160,7 @@ describe('useConfirmDelete', () => {
 
   it('deve mostrar warning quando getWarningMessage retorna mensagem', () => {
     const { result } = renderHook(() => useConfirmDelete<TestItem>({
-      onConfirm: jest.fn(),
+      onConfirm: vi.fn(),
       getWarningMessage: (item) => item.inUse ? 'Item em uso!' : null
     }))
 
@@ -162,7 +176,7 @@ describe('useConfirmDelete', () => {
 
   it('não deve mostrar warning quando item não está em uso', () => {
     const { result } = renderHook(() => useConfirmDelete<TestItem>({
-      onConfirm: jest.fn(),
+      onConfirm: vi.fn(),
       getWarningMessage: (item) => item.inUse ? 'Item em uso!' : null
     }))
 
@@ -178,7 +192,7 @@ describe('useConfirmDelete', () => {
 
   it('deve cancelar e limpar estado quando cancel() é chamado', () => {
     const { result } = renderHook(() => useConfirmDelete<TestItem>({
-      onConfirm: jest.fn()
+      onConfirm: vi.fn()
     }))
 
     const item: TestItem = { id: '1', name: 'Item Teste' }
