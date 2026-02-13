@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageHeader } from '@/components/page-header'
@@ -40,9 +40,10 @@ export default function PriceListPage() {
   const [sortField, setSortField] = useState<string>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
-  useEffect(() => {
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
     setPage(1)
-  }, [search])
+  }
 
   const getMarginBadge = (recipe: Recipe) => {
     if (!recipe.sellingPrice || recipe.margin === null || recipe.margin === undefined) {
@@ -173,7 +174,7 @@ export default function PriceListPage() {
         </div>
 
         {/* Filters */}
-        <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nome...">
+        <SearchBar value={search} onChange={handleSearchChange} placeholder="Buscar por nome...">
           <Select value={marginFilter} onValueChange={(v) => setMarginFilter(v as MarginFilter)}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filtrar por margem" />
