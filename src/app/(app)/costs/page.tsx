@@ -52,6 +52,8 @@ export default function CostsPage() {
     onSuccess: () => {
       invalidate()
       invalidateRecipeCaches()
+      // Invalida novamente após 3s para pegar dados recalculados pelo worker
+      setTimeout(() => invalidateRecipeCaches(), 3000)
       refetch()
     }
   })

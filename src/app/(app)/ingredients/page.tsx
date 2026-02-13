@@ -130,11 +130,18 @@ export default function IngredientsPage() {
         onSuccess: (response: any) => {
           const recipesUpdated = response.data?.recipesUpdated || 0
           if (recipesUpdated > 0) {
+            // Invalida imediatamente para limpar cache desatualizado
             invalidateRecipeCaches()
+
             toast.info(`🔄 Recalculando ${recipesUpdated} receita${recipesUpdated > 1 ? 's' : ''} afetada${recipesUpdated > 1 ? 's' : ''}...`, {
               description: 'Os custos serão atualizados em alguns segundos',
               duration: 4000
             })
+
+            // Invalida novamente após 3s para pegar dados recalculados pelo worker
+            setTimeout(() => {
+              invalidateRecipeCaches()
+            }, 3000)
           }
           handleCloseDialog()
           invalidateAll()
