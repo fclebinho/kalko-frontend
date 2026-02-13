@@ -37,10 +37,10 @@ export function NotificationBell() {
     }
   }, [])
 
-  // Poll unread count every 60s
+  // Poll unread count every 5min (reduced from 60s to reduce DB load)
   useEffect(() => {
     fetchUnreadCount()
-    const interval = setInterval(fetchUnreadCount, 60000)
+    const interval = setInterval(fetchUnreadCount, 300000) // 5 minutos
     return () => clearInterval(interval)
   }, [fetchUnreadCount])
 
