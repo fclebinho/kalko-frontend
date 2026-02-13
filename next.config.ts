@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+
+  // Performance optimizations applied:
+  // - Reduced notification polling from 60s to 300s
+  // - Backend caching for auth and notifications
 };
 
 export default withSentryConfig(nextConfig, {
