@@ -47,11 +47,13 @@ import { TablePagination } from '@/components/table-pagination'
 import { Plus, Pencil, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { useIngredients } from '@/hooks/use-ingredients'
+import { useRecipesStore } from '@/stores/use-recipes-store'
 
 export default function IngredientsPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const { ingredients, pagination, isValidating, deleteIngredient, refetch, invalidateAll } = useIngredients(search, page)
+  const invalidateRecipes = useRecipesStore(state => state.invalidate)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [ingredientToDelete, setIngredientToDelete] = useState<{ id: string; name: string; usedInRecipes: number } | null>(null)
@@ -108,6 +110,8 @@ export default function IngredientsPage() {
         const recipesUpdated = (response.data as any).recipesUpdated || 0
         if (recipesUpdated > 0) {
           toast.success(`Ingrediente atualizado. ${recipesUpdated} receita(s) recalculada(s)`)
+          // Invalidar cache de receitas pois foram recalculadas
+          invalidateRecipes()
         } else {
           toast.success('Ingrediente atualizado com sucesso')
         }
@@ -423,6 +427,7 @@ export default function IngredientsPage() {
         onOpenChange={setImportDialogOpen}
         onImportComplete={() => {
           invalidateAll()
+          invalidateRecipes() // Invalidar receitas pois podem ter sido recalculadas
           refetch()
         }}
       />
