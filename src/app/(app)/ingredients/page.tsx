@@ -47,17 +47,13 @@ import { TablePagination } from '@/components/table-pagination'
 import { Plus, Pencil, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { useIngredients } from '@/hooks/use-ingredients'
-import { useRecipesStore } from '@/stores/use-recipes-store'
-import { useRecipeDetailStore } from '@/stores/use-recipe-detail-store'
-import { useDashboardStore } from '@/stores/use-dashboard-store'
+import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
 
 export default function IngredientsPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const { ingredients, pagination, isValidating, deleteIngredient, refetch, invalidateAll } = useIngredients(search, page)
-  const invalidateRecipes = useRecipesStore(state => state.invalidate)
-  const invalidateRecipeDetails = useRecipeDetailStore(state => state.invalidate)
-  const invalidateDashboard = useDashboardStore(state => state.clear)
+  const invalidateRecipeCaches = useInvalidateRecipeCaches()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [ingredientToDelete, setIngredientToDelete] = useState<{ id: string; name: string; usedInRecipes: number } | null>(null)
@@ -114,10 +110,7 @@ export default function IngredientsPage() {
         const recipesUpdated = (response.data as any).recipesUpdated || 0
         if (recipesUpdated > 0) {
           toast.success(`Ingrediente atualizado. ${recipesUpdated} receita(s) recalculada(s)`)
-          // Invalidar TODOS os caches que dependem de receitas
-          invalidateRecipes() // Lista de receitas
-          invalidateRecipeDetails() // Detalhes de receitas
-          invalidateDashboard() // Dashboard (métricas de receitas)
+          invalidateRecipeCaches() // Invalida lista, detalhes e dashboard
         } else {
           toast.success('Ingrediente atualizado com sucesso')
         }
@@ -433,9 +426,7 @@ export default function IngredientsPage() {
         onOpenChange={setImportDialogOpen}
         onImportComplete={() => {
           invalidateAll()
-          invalidateRecipes() // Invalidar lista de receitas
-          invalidateRecipeDetails() // Invalidar detalhes de receitas
-          invalidateDashboard() // Invalidar dashboard
+          invalidateRecipeCaches() // Invalida lista, detalhes e dashboard
           refetch()
         }}
       />

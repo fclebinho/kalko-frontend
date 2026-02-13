@@ -29,15 +29,13 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { TablePagination } from '@/components/table-pagination'
 import { useRecipes } from '@/hooks/use-recipes'
-import { useRecipeDetailStore } from '@/stores/use-recipe-detail-store'
-import { useDashboardStore } from '@/stores/use-dashboard-store'
+import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
 
 export default function RecipesPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const { recipes, pagination, isValidating, deleteRecipe, refetch, invalidateAll } = useRecipes(search, page)
-  const invalidateRecipeDetails = useRecipeDetailStore(state => state.invalidate)
-  const invalidateDashboard = useDashboardStore(state => state.clear)
+  const invalidateRecipeCaches = useInvalidateRecipeCaches()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
@@ -91,8 +89,7 @@ export default function RecipesPage() {
       const response = await recipesApi.recalculateAll()
       toast.success(`${response.data.count} receitas recalculadas com sucesso`)
       invalidateAll() // Invalida lista de receitas
-      invalidateRecipeDetails() // Invalida detalhes de todas as receitas
-      invalidateDashboard() // Invalida dashboard
+      invalidateRecipeCaches() // Invalida detalhes e dashboard
       refetch()
     } catch (error: any) {
       toast.error('Erro ao recalcular receitas')

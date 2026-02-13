@@ -19,8 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { IngredientSelector } from '@/components/ingredient-selector'
-import { useRecipeDetailStore } from '@/stores/use-recipe-detail-store'
-import { useRecipesStore } from '@/stores/use-recipes-store'
+import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
 
 interface RecipeIngredient {
   ingredientId?: string
@@ -63,8 +62,7 @@ export default function EditRecipePage() {
   const router = useRouter()
   const pathname = usePathname()
   const id = pathname?.split('/').filter(Boolean)[1] || ''
-  const invalidateRecipeDetails = useRecipeDetailStore(state => state.invalidate)
-  const invalidateRecipesList = useRecipesStore(state => state.invalidate)
+  const invalidateRecipeCaches = useInvalidateRecipeCaches()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -155,8 +153,7 @@ export default function EditRecipePage() {
       }
 
       // Invalidar caches para forçar refetch dos dados atualizados
-      invalidateRecipeDetails(id) // Invalida cache deste detalhe específico
-      invalidateRecipesList() // Invalida lista de receitas
+      invalidateRecipeCaches({ recipeId: id }) // Invalida este detalhe, lista e dashboard
 
       toast.success('Receita atualizada com sucesso!')
       router.push(`/recipes/${id}`)

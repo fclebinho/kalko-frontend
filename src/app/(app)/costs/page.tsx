@@ -28,15 +28,11 @@ import { costsApi, FixedCost } from '@/lib/api'
 import { Plus, DollarSign, Clock, TrendingUp } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCosts } from '@/hooks/use-costs'
-import { useRecipesStore } from '@/stores/use-recipes-store'
-import { useRecipeDetailStore } from '@/stores/use-recipe-detail-store'
-import { useDashboardStore } from '@/stores/use-dashboard-store'
+import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
 
 export default function CostsPage() {
   const { settings, isValidating, refetch, invalidate } = useCosts()
-  const invalidateRecipes = useRecipesStore(state => state.invalidate)
-  const invalidateRecipeDetails = useRecipeDetailStore(state => state.invalidate)
-  const invalidateDashboard = useDashboardStore(state => state.clear)
+  const invalidateRecipeCaches = useInvalidateRecipeCaches()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogType, setDialogType] = useState<'hours' | 'fixed' | 'variable'>('hours')
   const [formData, setFormData] = useState({
@@ -89,11 +85,8 @@ export default function CostsPage() {
         toast.success('Custo variável adicionado. Receitas recalculadas.')
       }
       setDialogOpen(false)
-      // Invalidar TODOS os caches que dependem de receitas
       invalidate() // Custos
-      invalidateRecipes() // Lista de receitas
-      invalidateRecipeDetails() // Detalhes de receitas
-      invalidateDashboard() // Dashboard
+      invalidateRecipeCaches() // Lista, detalhes e dashboard
       refetch()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao salvar')
@@ -120,11 +113,8 @@ export default function CostsPage() {
         await costsApi.deleteVariableCost(deleteTarget.id)
       }
       toast.success('Custo excluído. Receitas recalculadas.')
-      // Invalidar TODOS os caches que dependem de receitas
       invalidate() // Custos
-      invalidateRecipes() // Lista de receitas
-      invalidateRecipeDetails() // Detalhes de receitas
-      invalidateDashboard() // Dashboard
+      invalidateRecipeCaches() // Lista, detalhes e dashboard
       refetch()
     } catch (error) {
       toast.error('Erro ao excluir')
