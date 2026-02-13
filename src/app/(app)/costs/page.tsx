@@ -14,26 +14,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { costsApi, FixedCost } from '@/lib/api'
 import { Plus, DollarSign, Clock, TrendingUp } from 'lucide-react'
-import { toast } from 'sonner'
 import { useCosts } from '@/hooks/use-costs'
 import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
+import { useDialog } from '@/hooks/use-dialog'
+import { useAsyncOperation } from '@/hooks/use-async-operation'
+import { useConfirmDelete } from '@/hooks/use-confirm-delete'
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 
 export default function CostsPage() {
   const { settings, isValidating, refetch, invalidate } = useCosts()
   const invalidateRecipeCaches = useInvalidateRecipeCaches()
-  const [dialogOpen, setDialogOpen] = useState(false)
+
+  // 🎯 SOLID: Uso de hooks reutilizáveis
+  const formDialog = useDialog()
+  const { execute: saveChanges, isLoading: isSaving } = useAsyncOperation()
+
   const [dialogType, setDialogType] = useState<'hours' | 'fixed' | 'variable'>('hours')
   const [formData, setFormData] = useState({
     monthlyHours: 0,
@@ -41,8 +38,23 @@ export default function CostsPage() {
     amount: 0,
     month: new Date().toISOString().slice(0, 7)
   })
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; type: 'fixed' | 'variable'; name: string } | null>(null)
+
+  // 🎯 DRY: Hook de confirmação de delete reutilizável
+  const confirmDelete = useConfirmDelete<{ id: string; type: 'fixed' | 'variable'; name: string }>({
+    onConfirm: async (item) => {
+      if (item.type === 'fixed') {
+        await costsApi.deleteFixedCost(item.id)
+      } else {
+        await costsApi.deleteVariableCost(item.id)
+      }
+    },
+    successMessage: 'Custo excluído. Receitas recalculadas.',
+    onSuccess: () => {
+      invalidate()
+      invalidateRecipeCaches()
+      refetch()
+    }
+  })
 
   const handleOpenDialog = (type: 'hours' | 'fixed' | 'variable') => {
     setDialogType(type)
@@ -59,69 +71,57 @@ export default function CostsPage() {
         month: new Date().toISOString().slice(0, 7)
       })
     }
-    setDialogOpen(true)
+    formDialog.open()
   }
 
+  // 🎯 DRY: Operação assíncrona com toast automático
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    try {
-      if (dialogType === 'hours') {
-        await costsApi.updateHours(formData.monthlyHours)
-        toast.success('Horas mensais atualizadas. Todas receitas foram recalculadas.')
-      } else if (dialogType === 'fixed') {
-        await costsApi.createFixedCost({
+    const operations = {
+      hours: {
+        operation: () => costsApi.updateHours(formData.monthlyHours),
+        message: 'Horas mensais atualizadas. Todas receitas foram recalculadas.'
+      },
+      fixed: {
+        operation: () => costsApi.createFixedCost({
           name: formData.name,
           amount: formData.amount,
           month: formData.month
-        })
-        toast.success('Custo fixo adicionado. Receitas recalculadas.')
-      } else {
-        await costsApi.createVariableCost({
+        }),
+        message: 'Custo fixo adicionado. Receitas recalculadas.'
+      },
+      variable: {
+        operation: () => costsApi.createVariableCost({
           name: formData.name,
           amount: formData.amount,
           month: formData.month
-        })
-        toast.success('Custo variável adicionado. Receitas recalculadas.')
+        }),
+        message: 'Custo variável adicionado. Receitas recalculadas.'
       }
-      setDialogOpen(false)
-      invalidate() // Custos
-      invalidateRecipeCaches() // Lista, detalhes e dashboard
-      refetch()
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao salvar')
     }
+
+    const { operation, message } = operations[dialogType]
+
+    await saveChanges({
+      operation,
+      successMessage: message,
+      onSuccess: () => {
+        formDialog.close()
+        invalidate()
+        invalidateRecipeCaches()
+        refetch()
+      }
+    })
   }
 
+  // 🎯 DRY: Handlers simplificados usando hook de delete
   const handleDeleteFixed = (id: string, name: string) => {
-    setDeleteTarget({ id, type: 'fixed', name })
-    setDeleteDialogOpen(true)
+    confirmDelete.prompt({ id, type: 'fixed', name })
   }
 
   const handleDeleteVariable = (id: string, name: string) => {
-    setDeleteTarget({ id, type: 'variable', name })
-    setDeleteDialogOpen(true)
-  }
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return
-
-    try {
-      if (deleteTarget.type === 'fixed') {
-        await costsApi.deleteFixedCost(deleteTarget.id)
-      } else {
-        await costsApi.deleteVariableCost(deleteTarget.id)
-      }
-      toast.success('Custo excluído. Receitas recalculadas.')
-      invalidate() // Custos
-      invalidateRecipeCaches() // Lista, detalhes e dashboard
-      refetch()
-    } catch (error) {
-      toast.error('Erro ao excluir')
-    } finally {
-      setDeleteDialogOpen(false)
-      setDeleteTarget(null)
-    }
+    confirmDelete.prompt({ id, type: 'variable', name })
   }
 
   if (!settings) {
@@ -300,7 +300,7 @@ export default function CostsPage() {
         </div>
 
       {/* Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={formDialog.isOpen} onOpenChange={formDialog.setIsOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -332,6 +332,7 @@ export default function CostsPage() {
                         monthlyHours: parseFloat(e.target.value) || 0
                       })
                     }
+                    disabled={isSaving}
                     required
                   />
                   <p className="text-sm text-muted-foreground mt-1">
@@ -351,6 +352,7 @@ export default function CostsPage() {
                       placeholder={
                         dialogType === 'fixed' ? 'Ex: Aluguel, Internet' : 'Ex: Energia, Água'
                       }
+                      disabled={isSaving}
                       required
                     />
                   </div>
@@ -368,6 +370,7 @@ export default function CostsPage() {
                           amount: parseFloat(e.target.value) || 0
                         })
                       }
+                      disabled={isSaving}
                       required
                     />
                   </div>
@@ -381,6 +384,7 @@ export default function CostsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, month: e.target.value })
                       }
+                      disabled={isSaving}
                       required
                     />
                   </div>
@@ -389,32 +393,29 @@ export default function CostsPage() {
             </div>
 
             <DialogFooter className="mt-6">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={formDialog.close}
+                disabled={isSaving}
+              >
                 Cancelar
               </Button>
-              <Button type="submit">Salvar</Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Salvando...' : 'Salvar'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir custo</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir &quot;{deleteTarget?.name}&quot;? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* 🎯 DRY: Componente reutilizável de confirmação */}
+      <ConfirmDeleteDialog
+        {...confirmDelete.dialogProps}
+        description={confirmDelete.pendingItem && (
+          <>Tem certeza que deseja excluir <strong>{confirmDelete.pendingItem.name}</strong>? Esta ação não pode ser desfeita.</>
+        )}
+      />
     </>
   )
 }
