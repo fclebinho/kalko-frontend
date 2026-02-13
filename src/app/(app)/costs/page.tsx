@@ -28,9 +28,15 @@ import { costsApi, FixedCost } from '@/lib/api'
 import { Plus, DollarSign, Clock, TrendingUp } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCosts } from '@/hooks/use-costs'
+import { useRecipesStore } from '@/stores/use-recipes-store'
+import { useRecipeDetailStore } from '@/stores/use-recipe-detail-store'
+import { useDashboardStore } from '@/stores/use-dashboard-store'
 
 export default function CostsPage() {
   const { settings, isValidating, refetch, invalidate } = useCosts()
+  const invalidateRecipes = useRecipesStore(state => state.invalidate)
+  const invalidateRecipeDetails = useRecipeDetailStore(state => state.invalidate)
+  const invalidateDashboard = useDashboardStore(state => state.clear)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogType, setDialogType] = useState<'hours' | 'fixed' | 'variable'>('hours')
   const [formData, setFormData] = useState({
@@ -66,24 +72,28 @@ export default function CostsPage() {
     try {
       if (dialogType === 'hours') {
         await costsApi.updateHours(formData.monthlyHours)
-        toast.success('Horas mensais atualizadas')
+        toast.success('Horas mensais atualizadas. Todas receitas foram recalculadas.')
       } else if (dialogType === 'fixed') {
         await costsApi.createFixedCost({
           name: formData.name,
           amount: formData.amount,
           month: formData.month
         })
-        toast.success('Custo fixo adicionado')
+        toast.success('Custo fixo adicionado. Receitas recalculadas.')
       } else {
         await costsApi.createVariableCost({
           name: formData.name,
           amount: formData.amount,
           month: formData.month
         })
-        toast.success('Custo variável adicionado')
+        toast.success('Custo variável adicionado. Receitas recalculadas.')
       }
       setDialogOpen(false)
-      invalidate()
+      // Invalidar TODOS os caches que dependem de receitas
+      invalidate() // Custos
+      invalidateRecipes() // Lista de receitas
+      invalidateRecipeDetails() // Detalhes de receitas
+      invalidateDashboard() // Dashboard
       refetch()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao salvar')
@@ -109,8 +119,12 @@ export default function CostsPage() {
       } else {
         await costsApi.deleteVariableCost(deleteTarget.id)
       }
-      toast.success('Custo excluído')
-      invalidate()
+      toast.success('Custo excluído. Receitas recalculadas.')
+      // Invalidar TODOS os caches que dependem de receitas
+      invalidate() // Custos
+      invalidateRecipes() // Lista de receitas
+      invalidateRecipeDetails() // Detalhes de receitas
+      invalidateDashboard() // Dashboard
       refetch()
     } catch (error) {
       toast.error('Erro ao excluir')
