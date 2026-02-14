@@ -323,6 +323,9 @@ export const recipesApi = {
   }) =>
     api.post<{ unitCost: number; sellingPrice: number; profit: number; margin: number }>('/recipes/calculate-price', data),
 
+  recalculationStatus: () =>
+    api.get<{ pending: number; recipeIds: string[] }>('/recipes/recalculation/status'),
+
   delete: (id: string) =>
     api.delete(`/recipes/${id}`)
 }

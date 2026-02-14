@@ -6,6 +6,7 @@ import { ptBR } from '@clerk/localizations'
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ApiProvider } from "@/components/api-provider";
+import { RecalculationIndicator } from "@/components/recalculation-indicator";
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -38,6 +39,7 @@ export default function RootLayout({
         >
           <ApiProvider>
             {children}
+            <RecalculationIndicator />
           </ApiProvider>
           <Toaster />
         </body>
