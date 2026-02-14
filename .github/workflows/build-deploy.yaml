@@ -155,15 +155,14 @@ jobs:
           if ! git diff --quiet; then
             FRONTEND_TAG="${{ needs.build-and-deploy.outputs.kustomize_tag }}"
             OVERLAY="${{ steps.overlay.outputs.overlay }}"
+            REPO="${{ github.repository }}"
+            SHA="${{ github.sha }}"
 
             git add overlays/
-            git commit -m "$(cat <<'EOF'
-chore(${OVERLAY}): update frontend to ${FRONTEND_TAG}
+            git commit -m "chore(${OVERLAY}): update frontend to ${FRONTEND_TAG}
 
 Auto-updated by kalko-frontend workflow
-Source: ${{ github.repository }}@${{ github.sha }}
-EOF
-)"
+Source: ${REPO}@${SHA}"
 
             # Retry logic para push
             MAX_RETRIES=3
