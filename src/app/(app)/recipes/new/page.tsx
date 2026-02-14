@@ -426,12 +426,11 @@ export default function NewRecipePage() {
 
                 <div>
                   <Label htmlFor="difficulty">Nível de Dificuldade</Label>
-                  <Select value={difficulty} onValueChange={setDifficulty}>
+                  <Select value={difficulty || undefined} onValueChange={setDifficulty}>
                     <SelectTrigger id="difficulty">
-                      <SelectValue placeholder="Selecione a dificuldade" />
+                      <SelectValue placeholder="Selecione a dificuldade (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
                       <SelectItem value="facil">Fácil</SelectItem>
                       <SelectItem value="medio">Médio</SelectItem>
                       <SelectItem value="dificil">Difícil</SelectItem>
