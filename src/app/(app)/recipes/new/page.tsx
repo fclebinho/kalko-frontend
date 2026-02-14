@@ -43,7 +43,10 @@ export default function NewRecipePage() {
   // Step 1
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('')
   const [prepTime, setPrepTime] = useState(0)
+  const [cookingTime, setCookingTime] = useState(0)
+  const [instructions, setInstructions] = useState('')
   const [yieldAmount, setYieldAmount] = useState(1)
   const [yieldUnit, setYieldUnit] = useState('un')
 
@@ -82,7 +85,10 @@ export default function NewRecipePage() {
       const data = {
         name,
         description: description || undefined,
+        category: category || undefined,
         prepTime,
+        cookingTime: cookingTime > 0 ? cookingTime : undefined,
+        instructions: instructions || undefined,
         yield: yieldAmount,
         yieldUnit,
         ingredients: ingredients.map(ing => ({
@@ -215,6 +221,28 @@ export default function NewRecipePage() {
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="category">Categoria</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bolo">Bolo</SelectItem>
+                      <SelectItem value="torta">Torta</SelectItem>
+                      <SelectItem value="doce">Doce</SelectItem>
+                      <SelectItem value="sobremesa">Sobremesa</SelectItem>
+                      <SelectItem value="salgado">Salgado</SelectItem>
+                      <SelectItem value="pao">Pão</SelectItem>
+                      <SelectItem value="biscoito">Biscoito</SelectItem>
+                      <SelectItem value="mousse">Mousse</SelectItem>
+                      <SelectItem value="recheio">Recheio</SelectItem>
+                      <SelectItem value="cobertura">Cobertura</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="prepTime">Tempo de Preparo (min) *</Label>
@@ -227,6 +255,21 @@ export default function NewRecipePage() {
                       required
                     />
                   </div>
+
+                  <div>
+                    <Label htmlFor="cookingTime">Tempo de Cozimento (min)</Label>
+                    <Input
+                      id="cookingTime"
+                      type="number"
+                      value={cookingTime || ''}
+                      onChange={(e) => setCookingTime(parseInt(e.target.value) || 0)}
+                      placeholder="40"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
 
                   <div>
                     <Label htmlFor="yield">Rendimento *</Label>
@@ -255,6 +298,21 @@ export default function NewRecipePage() {
                       </Select>
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="instructions">Modo de Preparo</Label>
+                  <Textarea
+                    id="instructions"
+                    value={instructions}
+                    onChange={(e) => setInstructions(e.target.value)}
+                    placeholder="Descreva o passo a passo do preparo da receita..."
+                    rows={8}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Digite as instruções detalhadas de preparo. Cada linha representa um passo.
+                  </p>
                 </div>
               </div>
             )}

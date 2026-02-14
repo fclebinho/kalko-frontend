@@ -87,7 +87,10 @@ export interface Recipe {
   id: string
   name: string
   description?: string
+  category?: string // Categoria da receita (bolo, torta, doce, etc)
   prepTime: number
+  cookingTime?: number // Tempo de cozimento em minutos
+  instructions?: string // Modo de preparo detalhado
   yield: number
   yieldUnit?: string
   totalCost?: number
@@ -341,7 +344,12 @@ export const recipesApi = {
     }>('/recipes/recalculation/status'),
 
   delete: (id: string) =>
-    api.delete(`/recipes/${id}`)
+    api.delete(`/recipes/${id}`),
+
+  exportTechnicalSheet: (id: string) =>
+    api.get(`/recipes/${id}/technical-sheet`, {
+      responseType: 'blob'
+    })
 }
 
 // API Methods - Costs

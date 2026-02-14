@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { recipesApi } from '@/lib/api'
-import { ArrowLeft, Clock, Package, DollarSign, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Trash2, Copy } from 'lucide-react'
+import { ArrowLeft, Clock, Package, DollarSign, TrendingUp, AlertCircle, AlertTriangle, CheckCircle, Trash2, Copy, FileDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { PriceCalculator } from '@/components/price-calculator'
@@ -38,7 +38,10 @@ interface RecipeDetails {
   id: string
   name: string
   description?: string
+  category?: string
   prepTime: number
+  cookingTime?: number
+  instructions?: string
   yield: number
   yieldUnit?: string
   totalCost?: number
@@ -156,6 +159,29 @@ export default function RecipeDetailsPage() {
     }
   }
 
+  const handleExportTechnicalSheet = async () => {
+    try {
+      toast.loading('Gerando ficha técnica...', { id: 'export-pdf' })
+      const response = await recipesApi.exportTechnicalSheet(id)
+
+      // Criar blob e fazer download
+      const blob = new Blob([response.data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `ficha-tecnica-${recipe?.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      toast.success('Ficha técnica exportada com sucesso!', { id: 'export-pdf' })
+    } catch (error: any) {
+      toast.error('Erro ao exportar ficha técnica', { id: 'export-pdf' })
+      console.error('Export error:', error)
+    }
+  }
+
   if (!recipe) {
     return (
       <div className="space-y-4">
@@ -197,17 +223,36 @@ export default function RecipeDetailsPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold">{recipe.name}</h1>
-            <RecipeStatusBadge status={recipe.calculationStatus} />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">{recipe.name}</h1>
+              <RecipeStatusBadge status={recipe.calculationStatus} />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportTechnicalSheet}
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                Exportar Ficha Técnica
+              </Button>
+            </div>
           </div>
-          {recipe.description && (
-            <p className="text-muted-foreground">{recipe.description}</p>
-          )}
+          <div className="space-y-1">
+            {recipe.description && (
+              <p className="text-muted-foreground">{recipe.description}</p>
+            )}
+            {recipe.category && (
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium">Categoria:</span> {recipe.category}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Tempo de Preparo</CardTitle>
@@ -215,6 +260,11 @@ export default function RecipeDetailsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{recipe.prepTime} min</div>
+              {recipe.cookingTime && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  + {recipe.cookingTime} min cozimento
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -306,6 +356,18 @@ export default function RecipeDetailsPage() {
               </Alert>
             )}
           </div>
+        )}
+
+        {/* Instructions */}
+        {recipe.instructions && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Modo de Preparo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="whitespace-pre-wrap text-sm">{recipe.instructions}</p>
+            </CardContent>
+          </Card>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
