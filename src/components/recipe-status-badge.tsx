@@ -31,12 +31,14 @@ export function RecipeStatusBadge({ status, className, showIdle = false }: Recip
       icon: null,
       variant: 'outline' as const,
       className: 'text-muted-foreground',
+      iconClassName: undefined,
     },
     pending: {
       label: 'Pendente',
       icon: Clock,
       variant: 'outline' as const,
       className: 'text-yellow-600 border-yellow-300 bg-yellow-50 dark:text-yellow-400 dark:border-yellow-600 dark:bg-yellow-950',
+      iconClassName: undefined,
     },
     calculating: {
       label: 'Calculando',
@@ -50,12 +52,14 @@ export function RecipeStatusBadge({ status, className, showIdle = false }: Recip
       icon: CheckCircle2,
       variant: 'outline' as const,
       className: 'text-green-600 border-green-300 bg-green-50 dark:text-green-400 dark:border-green-600 dark:bg-green-950',
+      iconClassName: undefined,
     },
     error: {
       label: 'Erro',
       icon: AlertCircle,
       variant: 'destructive' as const,
       className: '',
+      iconClassName: undefined,
     },
   }
 
