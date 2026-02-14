@@ -1,0 +1,189 @@
+# Este arquivo deve ser copiado para kalko-frontend/.github/workflows/build-deploy.yaml
+
+name: Build & Deploy Frontend
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/fclebinho/kalko-frontend
+
+jobs:
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm test -- --run
+
+  build-and-deploy:
+    name: Build & Deploy
+    needs: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    outputs:
+      sha_short: ${{ steps.env_tags.outputs.sha_short }}
+      kustomize_tag: ${{ steps.env_tags.outputs.kustomize_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate environment-specific tags
+        id: env_tags
+        run: |
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          BRANCH="${{ github.ref_name }}"
+
+          if [[ "$BRANCH" == "main" ]]; then
+            # Production: frontend-v{SEMVER}
+            VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.1.0")
+            TAGS="frontend-${VERSION},frontend-latest"
+            KUSTOMIZE_TAG="frontend-${VERSION}"
+          elif [[ "$BRANCH" == "staging" ]]; then
+            # Staging: frontend-staging-{SHA}
+            TAGS="frontend-staging-${SHA_SHORT},frontend-staging-latest"
+            KUSTOMIZE_TAG="frontend-staging-${SHA_SHORT}"
+          else
+            # Development: frontend-dev-{SHA}
+            TAGS="frontend-dev-${SHA_SHORT},frontend-dev-latest"
+            KUSTOMIZE_TAG="frontend-dev-${SHA_SHORT}"
+          fi
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "kustomize_tag=${KUSTOMIZE_TAG}" >> $GITHUB_OUTPUT
+          echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
+
+          echo "📦 Frontend tags: ${TAGS}"
+          echo "🎯 Kustomize will use: ${KUSTOMIZE_TAG}"
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ steps.env_tags.outputs.tags }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+
+  update-k8s:
+    name: Update Kubernetes Manifests
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout k8s-manifests
+        uses: actions/checkout@v4
+        with:
+          repository: fclebinho/kalko-k8s-manifests
+          token: ${{ secrets.K8S_MANIFESTS_PAT }}
+          path: k8s-manifests
+
+      - name: Determine overlay
+        id: overlay
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          if [[ "$BRANCH" == "main" ]]; then
+            echo "overlay=production" >> $GITHUB_OUTPUT
+          elif [[ "$BRANCH" == "staging" ]]; then
+            echo "overlay=staging" >> $GITHUB_OUTPUT
+          else
+            echo "overlay=development" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update kustomization.yaml
+        working-directory: k8s-manifests
+        run: |
+          OVERLAY="${{ steps.overlay.outputs.overlay }}"
+          KUSTOMIZATION="overlays/$OVERLAY/kustomization.yaml"
+          FRONTEND_TAG="${{ needs.build-and-deploy.outputs.kustomize_tag }}"
+
+          sed -i "/name: kalko-frontend/,/newTag:/ s/newTag:.*/newTag: ${FRONTEND_TAG}/" "$KUSTOMIZATION"
+
+          echo "✅ Updated frontend to ${FRONTEND_TAG}"
+          echo "📄 Updated kustomization:"
+          cat "$KUSTOMIZATION"
+
+      - name: Commit and push
+        working-directory: k8s-manifests
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if ! git diff --quiet; then
+            FRONTEND_TAG="${{ needs.build-and-deploy.outputs.kustomize_tag }}"
+            OVERLAY="${{ steps.overlay.outputs.overlay }}"
+
+            git add overlays/
+            git commit -m "chore(${OVERLAY}): update frontend to ${FRONTEND_TAG}
+
+Auto-updated by kalko-frontend workflow
+Source: ${{ github.repository }}@${{ github.sha }}"
+
+            # Retry logic para push
+            MAX_RETRIES=3
+            RETRY_COUNT=0
+
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if git push origin main; then
+                echo "✅ Pushed to k8s-manifests"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  echo "⚠️  Push failed, retrying ($RETRY_COUNT/$MAX_RETRIES)..."
+                  git pull --rebase origin main
+                  sleep 2
+                fi
+              fi
+            done
+
+            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+              echo "❌ Failed to push after $MAX_RETRIES attempts"
+              exit 1
+            fi
+          else
+            echo "No changes to commit"
+          fi
