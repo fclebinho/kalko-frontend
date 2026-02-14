@@ -67,18 +67,18 @@ jobs:
           BRANCH="${{ github.ref_name }}"
 
           if [[ "$BRANCH" == "main" ]]; then
-            # Production: frontend-v{SEMVER}
+            # Production: v{SEMVER}
             VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.1.0")
-            TAGS="frontend-${VERSION},frontend-latest"
-            KUSTOMIZE_TAG="frontend-${VERSION}"
+            TAGS="${VERSION},latest"
+            KUSTOMIZE_TAG="${VERSION}"
           elif [[ "$BRANCH" == "staging" ]]; then
-            # Staging: frontend-staging-{SHA}
-            TAGS="frontend-staging-${SHA_SHORT},frontend-staging-latest"
-            KUSTOMIZE_TAG="frontend-staging-${SHA_SHORT}"
+            # Staging: staging-{SHA}
+            TAGS="staging-${SHA_SHORT},staging-latest"
+            KUSTOMIZE_TAG="staging-${SHA_SHORT}"
           else
-            # Development: frontend-dev-{SHA}
-            TAGS="frontend-dev-${SHA_SHORT},frontend-dev-latest"
-            KUSTOMIZE_TAG="frontend-dev-${SHA_SHORT}"
+            # Development: dev-{SHA}
+            TAGS="dev-${SHA_SHORT},dev-latest"
+            KUSTOMIZE_TAG="dev-${SHA_SHORT}"
           fi
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
