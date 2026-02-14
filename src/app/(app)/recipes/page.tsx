@@ -31,6 +31,7 @@ import { useDialog } from '@/hooks/use-dialog'
 import { useAsyncOperation } from '@/hooks/use-async-operation'
 import { useConfirmDelete } from '@/hooks/use-confirm-delete'
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
+import { RecipeStatusBadge } from '@/components/recipe-status-badge'
 
 export default function RecipesPage() {
   const [search, setSearch] = useState('')
@@ -159,7 +160,12 @@ export default function RecipesPage() {
                 <TableBody>
                   {recipes.map((recipe) => (
                     <TableRow key={recipe.id}>
-                      <TableCell className="font-medium">{recipe.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <span>{recipe.name}</span>
+                          <RecipeStatusBadge status={recipe.calculationStatus} />
+                        </div>
+                      </TableCell>
                       <TableCell>{recipe.yield} {recipe.yieldUnit || 'un'}</TableCell>
                       <TableCell>{recipe.prepTime} min</TableCell>
                       <TableCell>

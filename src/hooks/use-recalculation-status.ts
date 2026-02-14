@@ -19,25 +19,44 @@ import { recipesApi } from '@/lib/api'
 
 interface RecalculationUpdate {
   pending: number
+  calculating: number
+  error: number
+  total: number
+  recipes: Array<{
+    id: string
+    name: string
+    status: 'pending' | 'calculating' | 'error'
+    lastCalculatedAt: string | null
+  }>
   recipeIds: string[]
   completed?: boolean
 }
 
 export function useRecalculationStatus() {
   const [pending, setPending] = useState(0)
+  const [calculating, setCalculating] = useState(0)
+  const [error, setError] = useState(0)
+  const [total, setTotal] = useState(0)
+  const [recipes, setRecipes] = useState<RecalculationUpdate['recipes']>([])
   const [recipeIds, setRecipeIds] = useState<string[]>([])
   const [isConnected, setIsConnected] = useState(false)
   const eventSourceRef = useRef<EventSource | null>(null)
+  const previousTotalRef = useRef(0)
 
   // Fetch inicial ao montar
   useEffect(() => {
     const checkInitialStatus = async () => {
       try {
         const response = await recipesApi.recalculationStatus()
-        const { pending: pendingCount, recipeIds: ids } = response.data
+        const data = response.data
 
-        setPending(pendingCount)
-        setRecipeIds(ids)
+        setPending(data.pending)
+        setCalculating(data.calculating || 0)
+        setError(data.error || 0)
+        setTotal(data.total || data.pending)
+        setRecipes(data.recipes || [])
+        setRecipeIds(data.recipeIds)
+        previousTotalRef.current = data.total || data.pending
       } catch (error) {
         console.error('[RecalculationStatus] Error checking initial status:', error)
       }
@@ -68,8 +87,21 @@ export function useRecalculationStatus() {
 
           console.log('[RecalculationStatus] Received update:', data)
 
+          // Atualizar estados
           setPending(data.pending)
+          setCalculating(data.calculating)
+          setError(data.error)
+          setTotal(data.total)
+          setRecipes(data.recipes)
           setRecipeIds(data.recipeIds)
+
+          // Detectar quando receitas completam (total diminuiu)
+          if (previousTotalRef.current > 0 && data.total < previousTotalRef.current) {
+            console.log('[RecalculationStatus] Recipes completed, cache should be invalidated')
+            // Cache invalidation será feito pelo componente que usa este hook
+          }
+
+          previousTotalRef.current = data.total
         }
       } catch (error) {
         console.error('[RecalculationStatus] Error parsing SSE message:', error)
@@ -95,8 +127,12 @@ export function useRecalculationStatus() {
 
   return {
     pending,
+    calculating,
+    error,
+    total,
+    recipes,
     recipeIds,
-    isRecalculating: pending > 0,
+    isRecalculating: total > 0,
     isConnected, // Status de conexão SSE
   }
 }

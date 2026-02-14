@@ -31,6 +31,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { PriceCalculator } from '@/components/price-calculator'
 import { PriceHistoryChart } from '@/components/price-history-chart'
 import { useRecipeDetail } from '@/hooks/use-recipe-detail'
+import { RecipeStatusBadge } from '@/components/recipe-status-badge'
 // Cálculos centralizados no backend - não usar isWeightVolumeUnit
 
 interface RecipeDetails {
@@ -46,6 +47,8 @@ interface RecipeDetails {
   suggestedPrice?: number
   sellingPrice?: number
   margin?: number
+  calculationStatus: 'idle' | 'pending' | 'calculating' | 'completed' | 'error'
+  lastCalculatedAt?: string
   ingredients: Array<{
     id: string
     ingredientId?: string
@@ -194,7 +197,10 @@ export default function RecipeDetailsPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{recipe.name}</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold">{recipe.name}</h1>
+            <RecipeStatusBadge status={recipe.calculationStatus} />
+          </div>
           {recipe.description && (
             <p className="text-muted-foreground">{recipe.description}</p>
           )}

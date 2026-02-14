@@ -97,6 +97,8 @@ export interface Recipe {
   sellingPrice?: number
   margin?: number
   profit?: number // Lucro (sellingPrice - pricingCost), calculado pelo backend
+  calculationStatus: 'idle' | 'pending' | 'calculating' | 'completed' | 'error'
+  lastCalculatedAt?: string
   createdAt: string
   updatedAt: string
   ingredients?: RecipeIngredient[]

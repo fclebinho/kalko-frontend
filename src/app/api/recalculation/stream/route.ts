@@ -48,13 +48,17 @@ export async function GET(req: NextRequest) {
             if (response.ok) {
               const data = await response.json()
 
-              // Enviar update para cliente
+              // Enviar update para cliente com status detalhado
               sendEvent({
                 type: 'recalculation:update',
                 payload: {
                   pending: data.pending,
+                  calculating: data.calculating,
+                  error: data.error,
+                  total: data.total,
+                  recipes: data.recipes, // Array com { id, name, status, lastCalculatedAt }
                   recipeIds: data.recipeIds,
-                  completed: data.pending === 0,
+                  completed: data.total === 0,
                 }
               })
             } else {
