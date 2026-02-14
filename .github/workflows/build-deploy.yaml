@@ -157,10 +157,13 @@ jobs:
             OVERLAY="${{ steps.overlay.outputs.overlay }}"
 
             git add overlays/
-            git commit -m "chore(${OVERLAY}): update frontend to ${FRONTEND_TAG}
+            git commit -m "$(cat <<'EOF'
+chore(${OVERLAY}): update frontend to ${FRONTEND_TAG}
 
 Auto-updated by kalko-frontend workflow
-Source: ${{ github.repository }}@${{ github.sha }}"
+Source: ${{ github.repository }}@${{ github.sha }}
+EOF
+)"
 
             # Retry logic para push
             MAX_RETRIES=3
