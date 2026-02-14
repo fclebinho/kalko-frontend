@@ -70,23 +70,32 @@ jobs:
           if [[ "$BRANCH" == "main" ]]; then
             # Production: v{SEMVER}
             VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.1.0")
-            TAGS="${VERSION},latest"
+            TAGS="type=raw,value=${VERSION}
+            type=raw,value=latest"
             KUSTOMIZE_TAG="${VERSION}"
           elif [[ "$BRANCH" == "staging" ]]; then
             # Staging: staging-{SHA}
-            TAGS="staging-${SHA_SHORT},staging-latest"
+            TAGS="type=raw,value=staging-${SHA_SHORT}
+            type=raw,value=staging-latest"
             KUSTOMIZE_TAG="staging-${SHA_SHORT}"
           else
             # Development: dev-{SHA}
-            TAGS="dev-${SHA_SHORT},dev-latest"
+            TAGS="type=raw,value=dev-${SHA_SHORT}
+            type=raw,value=dev-latest"
             KUSTOMIZE_TAG="dev-${SHA_SHORT}"
           fi
 
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          {
+            echo "tags<<EOF"
+            echo "$TAGS"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
           echo "kustomize_tag=${KUSTOMIZE_TAG}" >> $GITHUB_OUTPUT
           echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
 
-          echo "📦 Frontend tags: ${TAGS}"
+          echo "📦 Frontend will create tags:"
+          echo "$TAGS"
           echo "🎯 Kustomize will use: ${KUSTOMIZE_TAG}"
 
       - name: Extract metadata
