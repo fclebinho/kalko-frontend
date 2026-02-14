@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { recipesApi } from '@/lib/api'
-import { ArrowLeft, ArrowRight, Check, ChefHat, Package, DollarSign } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ChefHat, Package, DollarSign, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { IngredientSelector } from '@/components/ingredient-selector'
 
@@ -32,7 +32,8 @@ interface RecipeIngredient {
 const STEPS = [
   { id: 1, name: 'Informações Básicas', icon: ChefHat },
   { id: 2, name: 'Ingredientes', icon: Package },
-  { id: 3, name: 'Preço de Venda', icon: DollarSign },
+  { id: 3, name: 'Info. Profissionais', icon: Info },
+  { id: 4, name: 'Preço de Venda', icon: DollarSign },
 ]
 
 export default function NewRecipePage() {
@@ -53,7 +54,16 @@ export default function NewRecipePage() {
   // Step 2
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([])
 
-  // Step 3
+  // Step 3 - Professional fields (optional)
+  const [equipment, setEquipment] = useState<string[]>([])
+  const [equipmentInput, setEquipmentInput] = useState('')
+  const [difficulty, setDifficulty] = useState('')
+  const [notes, setNotes] = useState('')
+  const [storage, setStorage] = useState('')
+  const [tips, setTips] = useState('')
+  const [shelfLife, setShelfLife] = useState(0)
+
+  // Step 4
   const [sellingPrice, setSellingPrice] = useState<number | null>(null)
 
   const handleNext = () => {
@@ -89,6 +99,12 @@ export default function NewRecipePage() {
         prepTime,
         cookingTime: cookingTime > 0 ? cookingTime : undefined,
         instructions: instructions || undefined,
+        equipment: equipment.length > 0 ? equipment : undefined,
+        difficulty: difficulty || undefined,
+        notes: notes || undefined,
+        storage: storage || undefined,
+        tips: tips || undefined,
+        shelfLife: shelfLife > 0 ? shelfLife : undefined,
         yield: yieldAmount,
         yieldUnit,
         ingredients: ingredients.map(ing => ({
@@ -127,6 +143,17 @@ export default function NewRecipePage() {
     const newIngredients = [...ingredients]
     newIngredients[index].quantity = quantity
     setIngredients(newIngredients)
+  }
+
+  const addEquipment = () => {
+    if (equipmentInput.trim()) {
+      setEquipment([...equipment, equipmentInput.trim()])
+      setEquipmentInput('')
+    }
+  }
+
+  const removeEquipment = (index: number) => {
+    setEquipment(equipment.filter((_, i) => i !== index))
   }
 
   return (
@@ -359,8 +386,112 @@ export default function NewRecipePage() {
               </div>
             )}
 
-            {/* Step 3: Pricing */}
+            {/* Step 3: Professional Information */}
             {currentStep === 3 && (
+              <div className="space-y-4">
+                <div className="bg-muted p-4 rounded-md mb-4">
+                  <div className="text-sm text-muted-foreground">
+                    Informações opcionais que tornam sua ficha técnica mais completa e profissional.
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="equipment">Equipamentos Necessários</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="equipment"
+                      value={equipmentInput}
+                      onChange={(e) => setEquipmentInput(e.target.value)}
+                      placeholder="Ex: Batedeira, Forno"
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEquipment())}
+                    />
+                    <Button type="button" onClick={addEquipment} variant="outline">
+                      Adicionar
+                    </Button>
+                  </div>
+                  {equipment.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {equipment.map((eq, i) => (
+                        <Badge key={i} variant="secondary">
+                          {eq}
+                          <button
+                            type="button"
+                            onClick={() => removeEquipment(i)}
+                            className="ml-2 text-xs"
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="difficulty">Nível de Dificuldade</Label>
+                  <Select value={difficulty} onValueChange={setDifficulty}>
+                    <SelectTrigger id="difficulty">
+                      <SelectValue placeholder="Selecione a dificuldade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="facil">Fácil</SelectItem>
+                      <SelectItem value="medio">Médio</SelectItem>
+                      <SelectItem value="dificil">Difícil</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="storage">Armazenamento</Label>
+                    <Textarea
+                      id="storage"
+                      value={storage}
+                      onChange={(e) => setStorage(e.target.value)}
+                      placeholder="Ex: Manter refrigerado a 4°C"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="shelfLife">Validade (dias)</Label>
+                    <Input
+                      id="shelfLife"
+                      type="number"
+                      value={shelfLife || ''}
+                      onChange={(e) => setShelfLife(parseInt(e.target.value) || 0)}
+                      placeholder="Ex: 7"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="tips">Dicas Profissionais</Label>
+                  <Textarea
+                    id="tips"
+                    value={tips}
+                    onChange={(e) => setTips(e.target.value)}
+                    placeholder="Dicas e truques para melhor resultado..."
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="notes">Notas Adicionais</Label>
+                  <Textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Observações importantes..."
+                    rows={4}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Pricing */}
+            {currentStep === 4 && (
               <div className="space-y-4">
                 <div className="bg-muted p-4 rounded-md mb-4">
                   <div className="text-sm text-muted-foreground mb-2">

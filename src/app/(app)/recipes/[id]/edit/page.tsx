@@ -77,6 +77,13 @@ export default function EditRecipePage() {
   const [prepTime, setPrepTime] = useState(0)
   const [cookingTime, setCookingTime] = useState(0)
   const [instructions, setInstructions] = useState('')
+  const [equipment, setEquipment] = useState<string[]>([])
+  const [equipmentInput, setEquipmentInput] = useState('')
+  const [difficulty, setDifficulty] = useState('')
+  const [notes, setNotes] = useState('')
+  const [storage, setStorage] = useState('')
+  const [tips, setTips] = useState('')
+  const [shelfLife, setShelfLife] = useState(0)
   const [yieldAmount, setYieldAmount] = useState(1)
   const [yieldUnit, setYieldUnit] = useState('un')
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([])
@@ -100,6 +107,12 @@ export default function EditRecipePage() {
       setPrepTime(recipe.prepTime)
       setCookingTime(recipe.cookingTime || 0)
       setInstructions(recipe.instructions || '')
+      setEquipment(recipe.equipment || [])
+      setDifficulty(recipe.difficulty || '')
+      setNotes(recipe.notes || '')
+      setStorage(recipe.storage || '')
+      setTips(recipe.tips || '')
+      setShelfLife(recipe.shelfLife || 0)
       setYieldAmount(recipe.yield)
       setYieldUnit(recipe.yieldUnit || 'un')
       setSellingPrice(recipe.sellingPrice || null)
@@ -289,8 +302,6 @@ export default function EditRecipePage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-
                 <div>
                   <Label htmlFor="yield">Rendimento *</Label>
                   <div className="flex gap-2">

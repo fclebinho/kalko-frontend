@@ -42,6 +42,12 @@ interface RecipeDetails {
   prepTime: number
   cookingTime?: number
   instructions?: string
+  equipment?: string[]
+  difficulty?: string
+  notes?: string
+  storage?: string
+  tips?: string
+  shelfLife?: number
   yield: number
   yieldUnit?: string
   totalCost?: number
@@ -366,6 +372,70 @@ export default function RecipeDetailsPage() {
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap text-sm">{recipe.instructions}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Professional Information */}
+        {(recipe.equipment?.length || recipe.difficulty || recipe.storage || recipe.shelfLife || recipe.tips || recipe.notes) && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Informações Profissionais</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {recipe.equipment && recipe.equipment.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Equipamentos Necessários</h4>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground">
+                    {recipe.equipment.map((eq, i) => (
+                      <li key={i}>{eq}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {recipe.difficulty && (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Nível de Dificuldade</h4>
+                  <Badge variant={
+                    recipe.difficulty === 'facil' ? 'secondary' :
+                    recipe.difficulty === 'medio' ? 'default' :
+                    'destructive'
+                  }>
+                    {recipe.difficulty === 'facil' ? 'Fácil' :
+                     recipe.difficulty === 'medio' ? 'Médio' :
+                     'Difícil'}
+                  </Badge>
+                </div>
+              )}
+
+              {recipe.storage && (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Armazenamento</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{recipe.storage}</p>
+                </div>
+              )}
+
+              {recipe.shelfLife && (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Validade</h4>
+                  <p className="text-sm text-muted-foreground">{recipe.shelfLife} dias</p>
+                </div>
+              )}
+
+              {recipe.tips && (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Dicas Profissionais</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{recipe.tips}</p>
+                </div>
+              )}
+
+              {recipe.notes && (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Notas Adicionais</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{recipe.notes}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

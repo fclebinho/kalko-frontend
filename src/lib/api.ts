@@ -91,6 +91,14 @@ export interface Recipe {
   prepTime: number
   cookingTime?: number // Tempo de cozimento em minutos
   instructions?: string // Modo de preparo detalhado
+  // Professional fields (Phase 2)
+  equipment?: string[] // Equipamentos necessários
+  difficulty?: 'facil' | 'medio' | 'dificil' // Nível de dificuldade
+  notes?: string // Notas adicionais
+  storage?: string // Condições de armazenamento
+  tips?: string // Dicas profissionais
+  shelfLife?: number // Tempo de validade em dias
+  // Recipe data
   yield: number
   yieldUnit?: string
   totalCost?: number
