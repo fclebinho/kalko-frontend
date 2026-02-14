@@ -38,6 +38,12 @@ interface RecipeData {
   prepTime: number
   cookingTime?: number
   instructions?: string
+  equipment?: string[]
+  difficulty?: string
+  notes?: string
+  storage?: string
+  tips?: string
+  shelfLife?: number
   yield: number
   yieldUnit?: string
   sellingPrice?: number

@@ -387,7 +387,7 @@ export default function RecipeDetailsPage() {
                 <div>
                   <h4 className="font-semibold text-sm mb-2">Equipamentos Necessários</h4>
                   <ul className="list-disc list-inside text-sm text-muted-foreground">
-                    {recipe.equipment.map((eq, i) => (
+                    {recipe.equipment.map((eq: string, i: number) => (
                       <li key={i}>{eq}</li>
                     ))}
                   </ul>
