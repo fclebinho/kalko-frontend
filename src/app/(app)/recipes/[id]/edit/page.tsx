@@ -203,6 +203,17 @@ export default function EditRecipePage() {
     setIngredients(newIngredients)
   }
 
+  const addEquipment = () => {
+    if (equipmentInput.trim()) {
+      setEquipment([...equipment, equipmentInput.trim()])
+      setEquipmentInput('')
+    }
+  }
+
+  const removeEquipment = (index: number) => {
+    setEquipment(equipment.filter((_, i) => i !== index))
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -395,6 +406,107 @@ export default function EditRecipePage() {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Informações Profissionais</CardTitle>
+              <CardDescription>Informações opcionais para ficha técnica profissional</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="equipment">Equipamentos Necessários</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="equipment"
+                    value={equipmentInput}
+                    onChange={(e) => setEquipmentInput(e.target.value)}
+                    placeholder="Ex: Batedeira, Forno"
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEquipment())}
+                  />
+                  <Button type="button" onClick={addEquipment} variant="outline">
+                    Adicionar
+                  </Button>
+                </div>
+                {equipment.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {equipment.map((eq, i) => (
+                      <Badge key={i} variant="secondary">
+                        {eq}
+                        <button
+                          type="button"
+                          onClick={() => removeEquipment(i)}
+                          className="ml-2 text-xs"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="difficulty">Nível de Dificuldade</Label>
+                <Select value={difficulty} onValueChange={setDifficulty}>
+                  <SelectTrigger id="difficulty">
+                    <SelectValue placeholder="Selecione a dificuldade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="facil">Fácil</SelectItem>
+                    <SelectItem value="medio">Médio</SelectItem>
+                    <SelectItem value="dificil">Difícil</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="storage">Armazenamento</Label>
+                  <Textarea
+                    id="storage"
+                    value={storage}
+                    onChange={(e) => setStorage(e.target.value)}
+                    placeholder="Ex: Manter refrigerado a 4°C"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="shelfLife">Validade (dias)</Label>
+                  <Input
+                    id="shelfLife"
+                    type="number"
+                    value={shelfLife || ''}
+                    onChange={(e) => setShelfLife(parseInt(e.target.value) || 0)}
+                    placeholder="Ex: 7"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="tips">Dicas Profissionais</Label>
+                <Textarea
+                  id="tips"
+                  value={tips}
+                  onChange={(e) => setTips(e.target.value)}
+                  placeholder="Dicas e truques para melhor resultado..."
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="notes">Notas Adicionais</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Observações importantes..."
+                  rows={4}
+                />
+              </div>
             </CardContent>
           </Card>
 

@@ -219,7 +219,8 @@ export default function NewRecipePage() {
             <CardDescription>
               {currentStep === 1 && 'Informações básicas sobre a receita'}
               {currentStep === 2 && 'Adicione os ingredientes e suas quantidades'}
-              {currentStep === 3 && 'Defina o preço de venda (opcional)'}
+              {currentStep === 3 && 'Informações opcionais para ficha técnica profissional'}
+              {currentStep === 4 && 'Defina o preço de venda (opcional)'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -295,35 +296,31 @@ export default function NewRecipePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-
-                  <div>
-                    <Label htmlFor="yield">Rendimento *</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="yield"
-                        type="number"
-                        step={yieldUnit === 'un' ? '1' : '0.01'}
-                        value={yieldAmount || ''}
-                        onChange={(e) => setYieldAmount(parseFloat(e.target.value) || 1)}
-                        placeholder="10"
-                        className="flex-1"
-                        required
-                      />
-                      <Select value={yieldUnit} onValueChange={setYieldUnit}>
-                        <SelectTrigger className="w-[130px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="g">Gramas (g)</SelectItem>
-                          <SelectItem value="kg">Quilogramas (kg)</SelectItem>
-                          <SelectItem value="ml">Mililitros (ml)</SelectItem>
-                          <SelectItem value="l">Litros (l)</SelectItem>
-                          <SelectItem value="un">Unidade (un)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                <div>
+                  <Label htmlFor="yield">Rendimento *</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="yield"
+                      type="number"
+                      step={yieldUnit === 'un' ? '1' : '0.01'}
+                      value={yieldAmount || ''}
+                      onChange={(e) => setYieldAmount(parseFloat(e.target.value) || 1)}
+                      placeholder="10"
+                      className="flex-1"
+                      required
+                    />
+                    <Select value={yieldUnit} onValueChange={setYieldUnit}>
+                      <SelectTrigger className="w-[130px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="g">Gramas (g)</SelectItem>
+                        <SelectItem value="kg">Quilogramas (kg)</SelectItem>
+                        <SelectItem value="ml">Mililitros (ml)</SelectItem>
+                        <SelectItem value="l">Litros (l)</SelectItem>
+                        <SelectItem value="un">Unidade (un)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -562,7 +559,7 @@ export default function NewRecipePage() {
                 Anterior
               </Button>
 
-              {currentStep < 3 ? (
+              {currentStep < 4 ? (
                 <Button onClick={handleNext}>
                   Próximo
                   <ArrowRight className="ml-2 h-4 w-4" />
