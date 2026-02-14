@@ -49,5 +49,5 @@ CI/CD automático via GitHub Actions:
 
 ## Repositórios Relacionados
 
-- Backend: https://github.com/fclebinho/kalko.app
+- Backend: https://github.com/fclebinho/kalko-backend
 - K8s Manifests: https://github.com/fclebinho/kalko-k8s-manifests
