@@ -2,7 +2,7 @@
  * Hook para gerenciar conexão WebSocket com autenticação
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { getSocket, disconnectSocket } from '@/lib/socket'
 import { Socket } from 'socket.io-client'
@@ -11,19 +11,24 @@ export function useSocket() {
   const { getToken, isSignedIn } = useAuth()
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+  const previousSignedIn = useRef(isSignedIn)
 
   useEffect(() => {
-    if (!isSignedIn) {
-      // Desconectar se usuário não está autenticado
+    // Se usuário acabou de fazer logout, desconectar imediatamente
+    if (previousSignedIn.current && !isSignedIn) {
       if (socket) {
         disconnectSocket()
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSocket(null)
         setIsConnected(false)
       }
-      return
     }
 
-    // Conectar ao Socket.IO
+    previousSignedIn.current = isSignedIn
+
+    // Se não está autenticado ou já tem socket, não fazer nada
+    if (!isSignedIn || socket) return
+
     let mounted = true
 
     const connectSocket = async () => {
@@ -55,9 +60,8 @@ export function useSocket() {
 
     return () => {
       mounted = false
-      // Não desconectar aqui - manter conexão ativa entre remontagens
     }
-  }, [isSignedIn, getToken])
+  }, [isSignedIn, socket, getToken])
 
   return { socket, isConnected }
 }
