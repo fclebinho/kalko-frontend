@@ -7,6 +7,7 @@ on:
     branches: [main, develop, staging]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
