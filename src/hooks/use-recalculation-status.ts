@@ -1,8 +1,8 @@
 /**
  * Hook para monitorar status de recálculos em andamento
  *
- * Faz polling do endpoint /recipes/recalculation/status
- * enquanto houver jobs pendentes.
+ * Usa WebSocket para receber atualizações em tempo real do backend.
+ * Fallback para polling inicial se WebSocket ainda não conectado.
  *
  * @example
  * ```tsx
@@ -16,53 +16,53 @@
 
 import { useEffect, useState } from 'react'
 import { recipesApi } from '@/lib/api'
+import { useSocket } from './use-socket'
+import { onRecalculationUpdate } from '@/lib/socket'
 
 export function useRecalculationStatus() {
+  const { socket, isConnected } = useSocket()
   const [pending, setPending] = useState(0)
   const [recipeIds, setRecipeIds] = useState<string[]>([])
-  const [isPolling, setIsPolling] = useState(false)
 
+  // Fetch inicial ao montar (fallback enquanto WebSocket não conecta)
   useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null
-
-    const checkStatus = async () => {
+    const checkInitialStatus = async () => {
       try {
         const response = await recipesApi.recalculationStatus()
         const { pending: pendingCount, recipeIds: ids } = response.data
 
         setPending(pendingCount)
         setRecipeIds(ids)
-
-        // Se não há jobs pendentes, parar polling
-        if (pendingCount === 0 && intervalId) {
-          clearInterval(intervalId)
-          setIsPolling(false)
-        }
       } catch (error) {
-        console.error('[RecalculationStatus] Error:', error)
+        console.error('[RecalculationStatus] Error checking initial status:', error)
       }
     }
 
-    // Verificar inicialmente
-    checkStatus()
+    checkInitialStatus()
+  }, [])
 
-    // Iniciar polling se ainda não está rodando
-    if (!intervalId) {
-      intervalId = setInterval(checkStatus, 3000) // Poll a cada 3 segundos
-      setIsPolling(true)
-    }
+  // WebSocket real-time updates
+  useEffect(() => {
+    if (!socket || !isConnected) return
+
+    console.log('[RecalculationStatus] Listening for WebSocket updates')
+
+    const unsubscribe = onRecalculationUpdate((data) => {
+      console.log('[RecalculationStatus] Received update:', data)
+
+      setPending(data.pending)
+      setRecipeIds(data.recipeIds)
+    })
 
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId)
-      }
+      unsubscribe()
     }
-  }, [])
+  }, [socket, isConnected])
 
   return {
     pending,
     recipeIds,
     isRecalculating: pending > 0,
-    isPolling,
+    isConnected, // Expor status de conexão WebSocket
   }
 }
