@@ -159,10 +159,9 @@ jobs:
             SHA="${{ github.sha }}"
 
             git add overlays/
-            git commit -m "chore(${OVERLAY}): update frontend to ${FRONTEND_TAG}
-
-Auto-updated by kalko-frontend workflow
-Source: ${REPO}@${SHA}"
+            git commit -m "chore(${OVERLAY}): update frontend to ${FRONTEND_TAG}" \
+                       -m "Auto-updated by kalko-frontend workflow" \
+                       -m "Source: ${REPO}@${SHA}"
 
             # Retry logic para push
             MAX_RETRIES=3
