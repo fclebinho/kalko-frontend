@@ -272,12 +272,11 @@ export default function EditRecipePage() {
 
               <div>
                 <Label htmlFor="category">Categoria</Label>
-                <Select value={category} onValueChange={setCategory}>
+                <Select value={category || undefined} onValueChange={setCategory}>
                   <SelectTrigger id="category">
-                    <SelectValue placeholder="Selecione uma categoria" />
+                    <SelectValue placeholder="Selecione uma categoria (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma</SelectItem>
                     <SelectItem value="bolo">Bolo</SelectItem>
                     <SelectItem value="torta">Torta</SelectItem>
                     <SelectItem value="doce">Doce</SelectItem>
