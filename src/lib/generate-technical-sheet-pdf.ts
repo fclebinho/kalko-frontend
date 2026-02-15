@@ -32,8 +32,12 @@ interface TechnicalSheetData {
   laborCost: number
   totalCost: number
   unitCost: number
+  pricingCost?: number
   sellingPrice?: number
   margin?: number
+  taxAmount?: number
+  netProfit?: number
+  taxRate?: number
 }
 
 // Helper function to remove accents
@@ -318,16 +322,43 @@ export function generateTechnicalSheetPDF(data: TechnicalSheetData) {
     yPos += 5
   }
 
-  // Preço de venda e margem
-  if (data.sellingPrice) {
+  // Breakdown de preço
+  if (data.sellingPrice && data.sellingPrice > 0) {
     yPos += 5
+
+    // Linha separadora
+    doc.line(20, yPos, 190, yPos)
+    yPos += 5
+
+    doc.setFont('helvetica', 'bold')
     doc.text('Preco de venda:', 20, yPos)
     doc.text(`R$ ${data.sellingPrice.toFixed(2)}`, 180, yPos, { align: 'right' })
     yPos += 5
 
-    if (data.margin) {
-      doc.text('Margem de lucro:', 20, yPos)
-      doc.text(`${data.margin.toFixed(1)}%`, 180, yPos, { align: 'right' })
+    // Breakdown detalhado
+    doc.setFont('helvetica', 'normal')
+
+    // Custo
+    const cost = data.pricingCost || data.unitCost || 0
+    const costPercent = data.sellingPrice > 0 ? (cost / data.sellingPrice) * 100 : 0
+    doc.text(`  Custo:`, 25, yPos)
+    doc.text(`R$ ${cost.toFixed(2)} (${costPercent.toFixed(0)}%)`, 180, yPos, { align: 'right' })
+    yPos += 5
+
+    // Impostos
+    if (data.taxAmount !== undefined && data.taxRate !== undefined && data.taxRate > 0) {
+      const taxPercent = data.sellingPrice > 0 ? (data.taxAmount / data.sellingPrice) * 100 : 0
+      doc.text(`  Impostos (${data.taxRate}%):`, 25, yPos)
+      doc.text(`R$ ${data.taxAmount.toFixed(2)} (${taxPercent.toFixed(0)}%)`, 180, yPos, { align: 'right' })
+      yPos += 5
+    }
+
+    // Lucro Líquido
+    if (data.netProfit !== undefined) {
+      const profitPercent = data.sellingPrice > 0 ? (data.netProfit / data.sellingPrice) * 100 : 0
+      doc.setFont('helvetica', 'bold')
+      doc.text(`  Lucro Liquido:`, 25, yPos)
+      doc.text(`R$ ${data.netProfit.toFixed(2)} (${profitPercent.toFixed(0)}%)`, 180, yPos, { align: 'right' })
     }
   }
 

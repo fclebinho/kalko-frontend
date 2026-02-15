@@ -55,8 +55,12 @@ export default function TechnicalSheetPage() {
         laborCost: recipe.calculations.breakdown.laborCost,
         totalCost: recipe.calculations.breakdown.totalCost,
         unitCost: recipe.calculations.unitCost,
+        pricingCost: recipe.calculations.pricingCost,
         sellingPrice: recipe.sellingPrice,
         margin: recipe.margin || undefined,
+        taxAmount: recipe.calculations.taxAmount,
+        netProfit: recipe.calculations.netProfit,
+        taxRate: recipe.calculations.taxRate,
       }
 
       generateTechnicalSheetPDF(data)
