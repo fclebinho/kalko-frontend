@@ -163,7 +163,7 @@ export default function TechnicalSheetPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {calculations.breakdown.ingredients.map((ing, idx) => (
+                  {calculations.breakdown.ingredients.map((ing: any, idx: number) => (
                     <TableRow key={idx}>
                       <TableCell>
                         {ing.isSubRecipe && '→ '}
