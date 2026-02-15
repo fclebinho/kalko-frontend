@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { IngredientSelector } from '@/components/ingredient-selector'
+import { InstructionsInput } from '@/components/instructions-input'
 import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
 
 interface RecipeIngredient {
@@ -349,17 +350,10 @@ export default function EditRecipePage() {
 
               <div>
                 <Label htmlFor="instructions">Modo de Preparo</Label>
-                <Textarea
-                  id="instructions"
+                <InstructionsInput
                   value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                  placeholder="Descreva o passo a passo do preparo da receita..."
-                  rows={8}
-                  className="font-mono text-sm"
+                  onChange={setInstructions}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Digite as instruções detalhadas de preparo. Cada linha representa um passo.
-                </p>
               </div>
             </CardContent>
           </Card>

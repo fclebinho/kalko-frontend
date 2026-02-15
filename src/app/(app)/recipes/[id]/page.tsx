@@ -32,6 +32,7 @@ import { PriceCalculator } from '@/components/price-calculator'
 import { PriceHistoryChart } from '@/components/price-history-chart'
 import { useRecipeDetail } from '@/hooks/use-recipe-detail'
 import { RecipeStatusBadge } from '@/components/recipe-status-badge'
+import { InstructionsDisplay } from '@/components/instructions-display'
 // Cálculos centralizados no backend - não usar isWeightVolumeUnit
 
 interface RecipeDetails {
@@ -352,7 +353,7 @@ export default function RecipeDetailsPage() {
               <CardTitle>Modo de Preparo</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="whitespace-pre-wrap text-sm">{recipe.instructions}</p>
+              <InstructionsDisplay instructions={recipe.instructions} />
             </CardContent>
           </Card>
         )}

@@ -15,6 +15,7 @@ import {
 import { ArrowLeft, FileDown, Printer } from 'lucide-react'
 import { useRecipeDetail } from '@/hooks/use-recipe-detail'
 import { generateTechnicalSheetPDF } from '@/lib/generate-technical-sheet-pdf'
+import { InstructionsDisplay } from '@/components/instructions-display'
 import { toast } from 'sonner'
 
 export default function TechnicalSheetPage() {
@@ -193,7 +194,7 @@ export default function TechnicalSheetPage() {
               <CardTitle>MODO DE PREPARO</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="whitespace-pre-wrap text-sm">{recipe.instructions}</p>
+              <InstructionsDisplay instructions={recipe.instructions} />
             </CardContent>
           </Card>
         )}
