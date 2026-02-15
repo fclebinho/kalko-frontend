@@ -21,9 +21,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { recipesApi, Recipe } from '@/lib/api'
 import { Plus, Eye, Trash2, Copy, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import { PriceBreakdown } from '@/components/price-breakdown'
 import { TablePagination } from '@/components/table-pagination'
 import { useRecipes } from '@/hooks/use-recipes'
 import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
@@ -178,9 +184,27 @@ export default function RecipesPage() {
                         R$ {recipe.suggestedPrice?.toFixed(2) || '0.00'}
                       </TableCell>
                       <TableCell>
-                        {recipe.sellingPrice
-                          ? `R$ ${recipe.sellingPrice.toFixed(2)}`
-                          : '-'}
+                        {recipe.sellingPrice ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <span className="cursor-help underline decoration-dotted hover:decoration-solid">
+                                R$ {recipe.sellingPrice.toFixed(2)}
+                              </span>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" side="left">
+                              <PriceBreakdown
+                                sellingPrice={recipe.sellingPrice}
+                                cost={recipe.pricingCost ?? recipe.unitCost ?? 0}
+                                taxAmount={recipe.taxAmount}
+                                netProfit={recipe.netProfit}
+                                taxRate={recipe.taxRate}
+                                compact
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          '-'
+                        )}
                       </TableCell>
                       <TableCell>
                         {recipe.margin !== null && recipe.margin !== undefined ? (

@@ -16,6 +16,7 @@ import { ArrowLeft, FileDown, Printer } from 'lucide-react'
 import { useRecipeDetail } from '@/hooks/use-recipe-detail'
 import { generateTechnicalSheetPDF } from '@/lib/generate-technical-sheet-pdf'
 import { InstructionsDisplay } from '@/components/instructions-display'
+import { PriceBreakdown } from '@/components/price-breakdown'
 import { toast } from 'sonner'
 
 export default function TechnicalSheetPage() {
@@ -293,21 +294,21 @@ export default function TechnicalSheetPage() {
                     <span className="font-medium">R$ {recipe.unitCost.toFixed(2)}</span>
                   </div>
                 )}
-                {recipe.sellingPrice && (
-                  <>
-                    <div className="flex justify-between mt-4">
-                      <span>Preço de venda:</span>
-                      <span className="font-medium">R$ {recipe.sellingPrice.toFixed(2)}</span>
-                    </div>
-                    {recipe.margin !== null && recipe.margin !== undefined && (
-                      <div className="flex justify-between">
-                        <span>Margem de lucro:</span>
-                        <span className="font-medium">{recipe.margin.toFixed(1)}%</span>
-                      </div>
-                    )}
-                  </>
-                )}
               </div>
+
+              {/* Price Breakdown - Quando há preço de venda */}
+              {recipe.sellingPrice && recipe.sellingPrice > 0 && calculations && (
+                <div className="mt-4 pt-4 border-t">
+                  <PriceBreakdown
+                    sellingPrice={recipe.sellingPrice}
+                    cost={calculations.pricingCost}
+                    taxAmount={calculations.taxAmount}
+                    netProfit={calculations.netProfit}
+                    taxRate={calculations.taxRate}
+                    compact
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -316,6 +317,26 @@ export default function TechnicalSheetPage() {
         <div className="text-center text-sm text-muted-foreground print:mt-8">
           <p>Gerado por Kalko.app em {new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}</p>
         </div>
+      </div>
+
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+          .print\\:hidden {
+            display: none !important;
+          }
+          @page {
+            margin: 1cm;
+          }
+        }
+      `}</style>
+    </div>
+  )
+}
       </div>
 
       {/* Print Styles */}
