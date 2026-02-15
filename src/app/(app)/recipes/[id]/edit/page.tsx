@@ -168,6 +168,12 @@ export default function EditRecipePage() {
         prepTime,
         cookingTime: cookingTime > 0 ? cookingTime : undefined,
         instructions: instructions || undefined,
+        equipment: equipment.length > 0 ? equipment : undefined,
+        difficulty: difficulty || undefined,
+        notes: notes || undefined,
+        storage: storage || undefined,
+        tips: tips || undefined,
+        shelfLife: shelfLife > 0 ? shelfLife : undefined,
         yield: yieldAmount,
         yieldUnit,
         ingredients: ingredients.map((ing) => ({
