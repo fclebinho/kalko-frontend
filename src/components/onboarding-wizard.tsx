@@ -47,7 +47,7 @@ export function OnboardingWizard({ open, onComplete, allowClose }: OnboardingWiz
 
     try {
       setLoading(true)
-      await costsApi.updateHours(monthlyHours)
+      await costsApi.updateHours({ monthlyHours })
       setCompleted(true)
       toast.success('Configuração inicial concluída!')
 
