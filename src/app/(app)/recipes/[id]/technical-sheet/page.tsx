@@ -337,23 +337,3 @@ export default function TechnicalSheetPage() {
     </div>
   )
 }
-      </div>
-
-      {/* Print Styles */}
-      <style jsx global>{`
-        @media print {
-          body {
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
-          @page {
-            margin: 1cm;
-          }
-        }
-      `}</style>
-    </div>
-  )
-}
