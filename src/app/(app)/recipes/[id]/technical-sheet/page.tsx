@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,8 +19,8 @@ import { toast } from 'sonner'
 
 export default function TechnicalSheetPage() {
   const router = useRouter()
-  const pathname = usePathname()
-  const id = pathname?.split('/')[3] || ''
+  const params = useParams()
+  const id = params?.id as string || ''
   const { user } = useUser()
 
   const { recipe } = useRecipeDetail(id)
