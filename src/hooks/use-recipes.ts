@@ -18,6 +18,21 @@ export function useRecipes(search: string, page: number) {
     }
   }, [search, page, cached, isStale])
 
+  // 🔄 Auto-refresh when recipes are being calculated
+  useEffect(() => {
+    const hasPendingCalculations = cached?.data.some(recipe =>
+      ['pending', 'calculating'].includes(recipe.calculationStatus)
+    )
+
+    if (hasPendingCalculations) {
+      const interval = setInterval(() => {
+        fetchRecipes()
+      }, 5000) // Poll every 5 seconds
+
+      return () => clearInterval(interval)
+    }
+  }, [cached?.data])
+
   const fetchRecipes = async () => {
     try {
       if (!cached) setIsValidating(true)

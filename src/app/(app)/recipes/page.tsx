@@ -32,6 +32,7 @@ import { useAsyncOperation } from '@/hooks/use-async-operation'
 import { useConfirmDelete } from '@/hooks/use-confirm-delete'
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { RecipeStatusBadge } from '@/components/recipe-status-badge'
+import { RecalculationBanner } from '@/components/recalculation-banner'
 
 export default function RecipesPage() {
   const [search, setSearch] = useState('')
@@ -131,6 +132,8 @@ export default function RecipesPage() {
         </PageHeader>
 
         <SearchBar value={search} onChange={handleSearchChange} placeholder="Buscar por nome..." />
+
+        <RecalculationBanner />
 
         <DataTable
           loading={isValidating}
