@@ -7,6 +7,8 @@ import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Dialog,
@@ -16,10 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { billingApi, Subscription, Plan, settingsApi } from '@/lib/api'
+import { billingApi, Subscription, Plan, settingsApi, WorkSettings } from '@/lib/api'
 import { OnboardingWizard } from '@/components/onboarding-wizard'
 import { PricingTable } from '@/components/pricing-table'
-import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, QrCode, AlertTriangle, ChefHat, Package, GraduationCap, Sparkles } from 'lucide-react'
+import { Bell, BellOff, ArrowRight, CheckCircle2, CreditCard, QrCode, AlertTriangle, ChefHat, Package, GraduationCap, Sparkles, Calculator, Receipt } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
@@ -37,6 +39,12 @@ function SettingsContent() {
   // Settings state
   const [priceAlerts, setPriceAlerts] = useState(true)
   const [settingsLoading, setSettingsLoading] = useState(true)
+
+  // Work settings state
+  const [workSettings, setWorkSettings] = useState<WorkSettings | null>(null)
+  const [workLoading, setWorkLoading] = useState(true)
+  const [monthlyHours, setMonthlyHours] = useState(160)
+  const [taxRate, setTaxRate] = useState(0)
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -57,6 +65,7 @@ function SettingsContent() {
   const { execute: openPortal, isLoading: isOpeningPortal } = useAsyncOperation()
   const { execute: cancelSubscription, isLoading: isCanceling } = useAsyncOperation()
   const { execute: reactivateSubscription, isLoading: isReactivating } = useAsyncOperation()
+  const { execute: updateWorkSettings, isLoading: isSavingWork } = useAsyncOperation()
 
   useEffect(() => {
     // Load settings
@@ -65,6 +74,17 @@ function SettingsContent() {
       .then((res) => setPriceAlerts(res.data.priceAlerts))
       .catch(() => {})
       .finally(() => setSettingsLoading(false))
+
+    // Load work settings
+    settingsApi
+      .getWorkSettings()
+      .then((res) => {
+        setWorkSettings(res.data)
+        setMonthlyHours(res.data.monthlyHours)
+        setTaxRate(res.data.taxRate)
+      })
+      .catch(() => {})
+      .finally(() => setWorkLoading(false))
 
     // Load subscription
     loadSubscription()
@@ -105,6 +125,25 @@ function SettingsContent() {
       errorMessage: 'Erro ao atualizar preferencias',
       onSuccess: (result) => {
         setPriceAlerts(result)
+      }
+    })
+  }
+
+  const handleUpdateWorkSettings = async () => {
+    await updateWorkSettings({
+      operation: async () => {
+        const response = await settingsApi.updateWorkSettings({
+          monthlyHours,
+          taxRate
+        })
+        return response.data
+      },
+      successMessage: 'Configurações atualizadas com sucesso',
+      errorMessage: 'Erro ao atualizar configurações',
+      onSuccess: (result) => {
+        setWorkSettings(result)
+        setMonthlyHours(result.monthlyHours)
+        setTaxRate(result.taxRate)
       }
     })
   }
@@ -242,6 +281,80 @@ function SettingsContent() {
                     disabled={isSavingAlerts}
                   >
                     {isSavingAlerts ? 'Salvando...' : priceAlerts ? 'Ativado' : 'Desativado'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Configurações de Trabalho</CardTitle>
+              <CardDescription>
+                Configure suas horas mensais e taxa de impostos para cálculos precisos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {workLoading ? (
+                <div className="text-muted-foreground text-sm">Carregando...</div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="monthlyHours" className="flex items-center gap-2">
+                        <Calculator className="h-4 w-4 text-muted-foreground" />
+                        Horas Mensais
+                      </Label>
+                      <Input
+                        id="monthlyHours"
+                        type="number"
+                        min="1"
+                        max="744"
+                        step="1"
+                        value={monthlyHours}
+                        onChange={(e) => setMonthlyHours(parseFloat(e.target.value))}
+                        placeholder="160"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Total de horas trabalhadas por mês (ex: 160h = 8h/dia x 20 dias)
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="taxRate" className="flex items-center gap-2">
+                        <Receipt className="h-4 w-4 text-muted-foreground" />
+                        Taxa de Imposto (%)
+                      </Label>
+                      <Input
+                        id="taxRate"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={taxRate}
+                        onChange={(e) => setTaxRate(parseFloat(e.target.value))}
+                        placeholder="0"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Percentual de imposto sobre o preço de venda (ex: 6.5 para 6.5%)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      <strong>Como funciona:</strong> A taxa de imposto é descontada do preço de venda.
+                      Por exemplo, com imposto de 6.5%, um produto de R$ 100 terá R$ 6,50 de impostos,
+                      resultando em margem líquida menor.
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handleUpdateWorkSettings}
+                    disabled={isSavingWork}
+                    className="w-full"
+                  >
+                    {isSavingWork ? 'Salvando...' : 'Salvar Configurações'}
                   </Button>
                 </div>
               )}

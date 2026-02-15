@@ -477,6 +477,16 @@ export interface EmailPreferences {
   updatedAt: string
 }
 
+export interface WorkSettings {
+  id: string
+  userId: string
+  monthlyHours: number
+  taxRate: number
+  costPerMinute: number | null
+  createdAt: string
+  updatedAt: string
+}
+
 // API Methods - Settings
 export const settingsApi = {
   getEmailPreferences: () =>
@@ -484,6 +494,12 @@ export const settingsApi = {
 
   updateEmailPreferences: (data: { priceAlerts: boolean }) =>
     api.put<EmailPreferences>('/settings/email-preferences', data),
+
+  getWorkSettings: () =>
+    api.get<WorkSettings>('/settings/work'),
+
+  updateWorkSettings: (data: { monthlyHours?: number; taxRate?: number }) =>
+    api.put<WorkSettings>('/settings/work', data),
 }
 
 // API Methods - Orders
