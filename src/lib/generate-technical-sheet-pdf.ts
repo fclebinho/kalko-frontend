@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf'
+import { parseInstructions } from './instructions-utils'
 
 interface TechnicalSheetIngredient {
   name: string
@@ -12,6 +13,7 @@ interface TechnicalSheetIngredient {
 
 interface TechnicalSheetData {
   name: string
+  description?: string
   category?: string
   yield: number
   yieldUnit: string
@@ -19,6 +21,12 @@ interface TechnicalSheetData {
   cookingTime?: number
   userName?: string
   instructions?: string
+  equipment?: string[]
+  difficulty?: string
+  storage?: string
+  shelfLife?: number
+  tips?: string
+  notes?: string
   ingredients: TechnicalSheetIngredient[]
   ingredientsCost: number
   laborCost: number
@@ -133,10 +141,144 @@ export function generateTechnicalSheetPDF(data: TechnicalSheetData) {
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
 
-    // Quebrar texto em linhas
-    const lines = doc.splitTextToSize(removeAccents(data.instructions), 170)
-    doc.text(lines, 20, yPos)
-    yPos += lines.length * 5 + 10
+    const parsed = parseInstructions(data.instructions)
+
+    if (parsed.isStepByStep) {
+      // Renderizar como passos numerados
+      parsed.steps.forEach((step, index) => {
+        if (yPos > 270) {
+          doc.addPage()
+          yPos = 20
+        }
+
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${index + 1}.`, 20, yPos)
+        doc.setFont('helvetica', 'normal')
+
+        const lines = doc.splitTextToSize(removeAccents(step), 165)
+        doc.text(lines, 30, yPos)
+        yPos += lines.length * 5 + 3
+      })
+    } else {
+      // Renderizar como texto plano
+      const lines = doc.splitTextToSize(removeAccents(parsed.plainText), 170)
+      doc.text(lines, 20, yPos)
+      yPos += lines.length * 5
+    }
+
+    yPos += 10
+  }
+
+  // ===== INFORMAÇÕES PROFISSIONAIS =====
+  const hasProfessionalInfo = data.description || data.equipment?.length || data.difficulty ||
+                               data.storage || data.shelfLife || data.tips || data.notes
+
+  if (hasProfessionalInfo) {
+    if (yPos > 240) {
+      doc.addPage()
+      yPos = 20
+    }
+
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('INFORMACOES PROFISSIONAIS', 20, yPos)
+    yPos += 7
+
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+
+    if (data.description) {
+      doc.setFont('helvetica', 'bold')
+      doc.text('Descricao:', 20, yPos)
+      yPos += 5
+      doc.setFont('helvetica', 'normal')
+      const lines = doc.splitTextToSize(removeAccents(data.description), 170)
+      doc.text(lines, 20, yPos)
+      yPos += lines.length * 5 + 5
+    }
+
+    if (data.equipment && data.equipment.length > 0) {
+      if (yPos > 270) {
+        doc.addPage()
+        yPos = 20
+      }
+      doc.setFont('helvetica', 'bold')
+      doc.text('Equipamentos Necessarios:', 20, yPos)
+      yPos += 5
+      doc.setFont('helvetica', 'normal')
+      doc.text(removeAccents(data.equipment.join(', ')), 20, yPos)
+      yPos += 10
+    }
+
+    if (data.difficulty) {
+      if (yPos > 270) {
+        doc.addPage()
+        yPos = 20
+      }
+      doc.setFont('helvetica', 'bold')
+      doc.text('Nivel de Dificuldade:', 20, yPos)
+      yPos += 5
+      doc.setFont('helvetica', 'normal')
+      doc.text(removeAccents(data.difficulty.charAt(0).toUpperCase() + data.difficulty.slice(1)), 20, yPos)
+      yPos += 10
+    }
+
+    if (data.storage) {
+      if (yPos > 260) {
+        doc.addPage()
+        yPos = 20
+      }
+      doc.setFont('helvetica', 'bold')
+      doc.text('Armazenamento:', 20, yPos)
+      yPos += 5
+      doc.setFont('helvetica', 'normal')
+      const lines = doc.splitTextToSize(removeAccents(data.storage), 170)
+      doc.text(lines, 20, yPos)
+      yPos += lines.length * 5 + 5
+    }
+
+    if (data.shelfLife) {
+      if (yPos > 270) {
+        doc.addPage()
+        yPos = 20
+      }
+      doc.setFont('helvetica', 'bold')
+      doc.text('Validade:', 20, yPos)
+      yPos += 5
+      doc.setFont('helvetica', 'normal')
+      doc.text(`${data.shelfLife} dias`, 20, yPos)
+      yPos += 10
+    }
+
+    if (data.tips) {
+      if (yPos > 260) {
+        doc.addPage()
+        yPos = 20
+      }
+      doc.setFont('helvetica', 'bold')
+      doc.text('Dicas Profissionais:', 20, yPos)
+      yPos += 5
+      doc.setFont('helvetica', 'normal')
+      const lines = doc.splitTextToSize(removeAccents(data.tips), 170)
+      doc.text(lines, 20, yPos)
+      yPos += lines.length * 5 + 5
+    }
+
+    if (data.notes) {
+      if (yPos > 260) {
+        doc.addPage()
+        yPos = 20
+      }
+      doc.setFont('helvetica', 'bold')
+      doc.text('Notas Adicionais:', 20, yPos)
+      yPos += 5
+      doc.setFont('helvetica', 'normal')
+      const lines = doc.splitTextToSize(removeAccents(data.notes), 170)
+      doc.text(lines, 20, yPos)
+      yPos += lines.length * 5 + 5
+    }
+
+    yPos += 5
   }
 
   // ===== RESUMO DE CUSTOS =====

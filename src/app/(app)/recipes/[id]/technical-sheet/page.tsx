@@ -35,6 +35,7 @@ export default function TechnicalSheetPage() {
     try {
       const data = {
         name: recipe.name,
+        description: recipe.description,
         category: recipe.category,
         yield: recipe.yield,
         yieldUnit: recipe.yieldUnit || 'un',
@@ -42,6 +43,12 @@ export default function TechnicalSheetPage() {
         cookingTime: recipe.cookingTime,
         userName: user?.fullName || user?.firstName || undefined,
         instructions: recipe.instructions,
+        equipment: recipe.equipment,
+        difficulty: recipe.difficulty,
+        storage: recipe.storage,
+        shelfLife: recipe.shelfLife,
+        tips: recipe.tips,
+        notes: recipe.notes,
         ingredients: recipe.calculations.breakdown.ingredients,
         ingredientsCost: recipe.calculations.breakdown.ingredientsCost,
         laborCost: recipe.calculations.breakdown.laborCost,
@@ -195,6 +202,67 @@ export default function TechnicalSheetPage() {
             </CardHeader>
             <CardContent>
               <InstructionsDisplay instructions={recipe.instructions} />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Professional Information */}
+        {(recipe.description || recipe.equipment?.length || recipe.difficulty || recipe.storage || recipe.shelfLife || recipe.tips || recipe.notes) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>INFORMAÇÕES PROFISSIONAIS</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 text-sm">
+                {recipe.description && (
+                  <div>
+                    <span className="font-semibold block mb-1">Descrição:</span>
+                    <p className="text-muted-foreground">{recipe.description}</p>
+                  </div>
+                )}
+
+                {recipe.equipment && recipe.equipment.length > 0 && (
+                  <div>
+                    <span className="font-semibold block mb-1">Equipamentos Necessários:</span>
+                    <p className="text-muted-foreground">{recipe.equipment.join(', ')}</p>
+                  </div>
+                )}
+
+                {recipe.difficulty && (
+                  <div>
+                    <span className="font-semibold block mb-1">Nível de Dificuldade:</span>
+                    <p className="text-muted-foreground capitalize">{recipe.difficulty}</p>
+                  </div>
+                )}
+
+                {recipe.storage && (
+                  <div>
+                    <span className="font-semibold block mb-1">Armazenamento:</span>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{recipe.storage}</p>
+                  </div>
+                )}
+
+                {recipe.shelfLife && (
+                  <div>
+                    <span className="font-semibold block mb-1">Validade:</span>
+                    <p className="text-muted-foreground">{recipe.shelfLife} dias</p>
+                  </div>
+                )}
+
+                {recipe.tips && (
+                  <div>
+                    <span className="font-semibold block mb-1">Dicas Profissionais:</span>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{recipe.tips}</p>
+                  </div>
+                )}
+
+                {recipe.notes && (
+                  <div>
+                    <span className="font-semibold block mb-1">Notas Adicionais:</span>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{recipe.notes}</p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
