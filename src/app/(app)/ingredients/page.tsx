@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/page-header'
 import { SearchBar } from '@/components/search-bar'
@@ -79,8 +80,10 @@ export default function IngredientsPage() {
     quantity: 0,
     cost: 0,
     unit: 'g',
-    supplier: ''
+    supplier: '',
+    suggestedBrands: [] as string[]
   })
+  const [brandInput, setBrandInput] = useState('')
 
   const handleSearchChange = (value: string) => {
     setSearch(value)
@@ -96,7 +99,8 @@ export default function IngredientsPage() {
         quantity: ingredient.quantity,
         cost: ingredient.cost,
         unit: ingredient.unit,
-        supplier: ingredient.supplier || ''
+        supplier: ingredient.supplier || '',
+        suggestedBrands: (ingredient as any).suggestedBrands || []
       })
     } else {
       setEditingId(null)
@@ -105,15 +109,35 @@ export default function IngredientsPage() {
         quantity: 0,
         cost: 0,
         unit: 'g',
-        supplier: ''
+        supplier: '',
+        suggestedBrands: []
       })
     }
+    setBrandInput('')
     formDialog.open()
   }
 
   const handleCloseDialog = () => {
     formDialog.close()
     setEditingId(null)
+    setBrandInput('')
+  }
+
+  const addBrand = () => {
+    if (brandInput.trim() && !formData.suggestedBrands.includes(brandInput.trim())) {
+      setFormData({
+        ...formData,
+        suggestedBrands: [...formData.suggestedBrands, brandInput.trim()]
+      })
+      setBrandInput('')
+    }
+  }
+
+  const removeBrand = (index: number) => {
+    setFormData({
+      ...formData,
+      suggestedBrands: formData.suggestedBrands.filter((_, i) => i !== index)
+    })
   }
 
   // 🎯 DRY: Operação assíncrona com toast automático
@@ -360,6 +384,38 @@ export default function IngredientsPage() {
                     setFormData({ ...formData, supplier: e.target.value })
                   }
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="brandInput">Marcas Sugeridas (Tags)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="brandInput"
+                    value={brandInput}
+                    onChange={(e) => setBrandInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addBrand())}
+                    placeholder="Ex: Nestlé, Callebaut, Vigor..."
+                  />
+                  <Button type="button" onClick={addBrand} variant="outline">
+                    Adicionar
+                  </Button>
+                </div>
+                {formData.suggestedBrands.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {formData.suggestedBrands.map((brand, i) => (
+                      <Badge key={i} variant="secondary">
+                        {brand}
+                        <button
+                          type="button"
+                          onClick={() => removeBrand(i)}
+                          className="ml-2 text-xs hover:text-destructive"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {formData.quantity > 0 && formData.cost > 0 && (
