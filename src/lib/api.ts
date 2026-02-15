@@ -141,6 +141,7 @@ export interface VariableCost {
 
 export interface CostsSettings {
   monthlyHours: number
+  taxRate: number
   costPerMinute: number
   costPerHour: number
   fixedCosts: {
@@ -360,8 +361,8 @@ export const costsApi = {
   getSettings: () =>
     api.get<CostsSettings>('/costs/settings'),
 
-  updateHours: (monthlyHours: number) =>
-    api.put('/costs/hours', { monthlyHours }),
+  updateHours: (data: { monthlyHours?: number; taxRate?: number }) =>
+    api.put('/costs/hours', data),
 
   createFixedCost: (data: { name: string; amount: number; month: string }) =>
     api.post<FixedCost>('/costs/fixed', data),

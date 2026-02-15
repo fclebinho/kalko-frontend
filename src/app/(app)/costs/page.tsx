@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { costsApi, FixedCost } from '@/lib/api'
-import { Plus, DollarSign, Clock, TrendingUp } from 'lucide-react'
+import { Plus, DollarSign, Clock, TrendingUp, Receipt } from 'lucide-react'
 import { useCosts } from '@/hooks/use-costs'
 import { useInvalidateRecipeCaches } from '@/hooks/use-invalidate-recipe-caches'
 import { useDialog } from '@/hooks/use-dialog'
@@ -34,6 +34,7 @@ export default function CostsPage() {
   const [dialogType, setDialogType] = useState<'hours' | 'fixed' | 'variable'>('hours')
   const [formData, setFormData] = useState({
     monthlyHours: 0,
+    taxRate: 0,
     name: '',
     amount: 0,
     month: new Date().toISOString().slice(0, 7)
@@ -63,11 +64,13 @@ export default function CostsPage() {
     if (type === 'hours' && settings) {
       setFormData({
         ...formData,
-        monthlyHours: settings.monthlyHours
+        monthlyHours: settings.monthlyHours,
+        taxRate: settings.taxRate
       })
     } else {
       setFormData({
         monthlyHours: 0,
+        taxRate: 0,
         name: '',
         amount: 0,
         month: new Date().toISOString().slice(0, 7)
@@ -82,8 +85,11 @@ export default function CostsPage() {
 
     const operations = {
       hours: {
-        operation: () => costsApi.updateHours(formData.monthlyHours),
-        message: 'Horas mensais atualizadas. Todas receitas foram recalculadas.'
+        operation: () => costsApi.updateHours({
+          monthlyHours: formData.monthlyHours,
+          taxRate: formData.taxRate
+        }),
+        message: 'Configurações atualizadas. Todas receitas foram recalculadas.'
       },
       fixed: {
         operation: () => costsApi.createFixedCost({
@@ -144,7 +150,7 @@ export default function CostsPage() {
       <PageHeader title="Custos Operacionais" description="Configure custos fixos, variáveis e horas de trabalho" />
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Custo/Minuto</CardTitle>
@@ -181,6 +187,25 @@ export default function CostsPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {settings?.monthlyHours || 0}h
+              </div>
+              <Button
+                variant="link"
+                className="p-0 h-auto text-xs"
+                onClick={() => handleOpenDialog('hours')}
+              >
+                Atualizar
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Taxa de Imposto</CardTitle>
+              <Receipt className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {settings?.taxRate || 0}%
               </div>
               <Button
                 variant="link"
@@ -307,14 +332,14 @@ export default function CostsPage() {
           <DialogHeader>
             <DialogTitle>
               {dialogType === 'hours'
-                ? 'Atualizar Horas Mensais'
+                ? 'Configurações de Trabalho'
                 : dialogType === 'fixed'
                 ? 'Adicionar Custo Fixo'
                 : 'Adicionar Custo Variável'}
             </DialogTitle>
             <DialogDescription>
               {dialogType === 'hours'
-                ? 'Informe quantas horas você trabalha por mês'
+                ? 'Configure horas mensais e taxa de imposto para cálculos precisos'
                 : 'Adicione um novo custo ao mês atual'}
             </DialogDescription>
           </DialogHeader>
@@ -322,25 +347,53 @@ export default function CostsPage() {
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               {dialogType === 'hours' ? (
-                <div>
-                  <Label htmlFor="hours">Horas Mensais *</Label>
-                  <Input
-                    id="hours"
-                    type="number"
-                    value={formData.monthlyHours}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        monthlyHours: parseFloat(e.target.value) || 0
-                      })
-                    }
-                    disabled={isSaving}
-                    required
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Exemplo: 160 horas (20 dias × 8 horas)
-                  </p>
-                </div>
+                <>
+                  <div>
+                    <Label htmlFor="hours">Horas Mensais *</Label>
+                    <Input
+                      id="hours"
+                      type="number"
+                      min="1"
+                      max="744"
+                      step="1"
+                      value={formData.monthlyHours}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          monthlyHours: parseFloat(e.target.value) || 0
+                        })
+                      }
+                      disabled={isSaving}
+                      required
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Exemplo: 160 horas (20 dias × 8 horas)
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="taxRate">Taxa de Imposto (%) *</Label>
+                    <Input
+                      id="taxRate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={formData.taxRate}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          taxRate: parseFloat(e.target.value) || 0
+                        })
+                      }
+                      disabled={isSaving}
+                      required
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Percentual de imposto sobre o preço de venda (ex: 6.5 para 6.5%)
+                    </p>
+                  </div>
+                </>
               ) : (
                 <>
                   <div>
