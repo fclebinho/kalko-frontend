@@ -166,7 +166,7 @@ export default function TechnicalSheetPage() {
                   <TableRow>
                     <TableHead>Ingrediente</TableHead>
                     <TableHead className="text-right">Quantidade</TableHead>
-                    <TableHead className="text-right">Custo Unit.</TableHead>
+                    <TableHead className="text-right">Custo Total</TableHead>
                     <TableHead className="text-right">% Custo</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -181,7 +181,7 @@ export default function TechnicalSheetPage() {
                         {ing.quantity} {ing.unit}
                       </TableCell>
                       <TableCell className="text-right">
-                        R$ {ing.costPerUnit.toFixed(4)}
+                        R$ {ing.totalCost.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
                         {ing.percentage.toFixed(1)}%

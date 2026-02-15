@@ -99,7 +99,7 @@ export function generateTechnicalSheetPDF(data: TechnicalSheetData) {
   doc.setFontSize(9)
   doc.text('Ingrediente', 20, yPos)
   doc.text('Quantidade', 120, yPos, { align: 'right' })
-  doc.text('Custo Unit.', 150, yPos, { align: 'right' })
+  doc.text('Custo Total', 150, yPos, { align: 'right' })
   doc.text('% Custo', 180, yPos, { align: 'right' })
 
   // Linha abaixo do cabeçalho
@@ -118,7 +118,7 @@ export function generateTechnicalSheetPDF(data: TechnicalSheetData) {
     const name = ing.isSubRecipe ? `-> ${removeAccents(ing.name)}` : removeAccents(ing.name)
     doc.text(name.substring(0, 40), 20, yPos)
     doc.text(`${ing.quantity} ${removeAccents(ing.unit)}`, 120, yPos, { align: 'right' })
-    doc.text(`R$ ${ing.costPerUnit.toFixed(4)}`, 150, yPos, { align: 'right' })
+    doc.text(`R$ ${ing.totalCost.toFixed(2)}`, 150, yPos, { align: 'right' })
     doc.text(`${ing.percentage.toFixed(1)}%`, 180, yPos, { align: 'right' })
 
     yPos += 5
