@@ -36,7 +36,8 @@ export function generatePriceListPdf({ recipes, title }: PdfOptions) {
       `${recipe.prepTime} min`,
       `R$ ${displayCost.toFixed(2)}`,
       recipe.sellingPrice ? `R$ ${recipe.sellingPrice.toFixed(2)}` : '-',
-      recipe.profit !== null && recipe.profit !== undefined ? `R$ ${recipe.profit.toFixed(2)}` : '-',
+      recipe.taxAmount !== null && recipe.taxAmount !== undefined ? `R$ ${recipe.taxAmount.toFixed(2)}` : '-',
+      recipe.netProfit !== null && recipe.netProfit !== undefined ? `R$ ${recipe.netProfit.toFixed(2)}` : '-',
       recipe.margin !== null && recipe.margin !== undefined
         ? `${recipe.margin.toFixed(1)}%`
         : '-',
@@ -46,7 +47,7 @@ export function generatePriceListPdf({ recipes, title }: PdfOptions) {
   autoTable(doc, {
     startY: 36,
     head: [
-      ['Produto', 'Rendimento', 'Preparo', 'Custo', 'Preco Venda', 'Lucro', 'Margem'],
+      ['Produto', 'Rendimento', 'Preparo', 'Custo', 'Preco', 'Impostos', 'Lucro Liq.', 'Margem'],
     ],
     body: tableData,
     styles: { fontSize: 9 },

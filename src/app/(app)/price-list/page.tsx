@@ -22,9 +22,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Recipe } from '@/lib/api'
 import { ArrowUpDown, AlertCircle, AlertTriangle, CheckCircle, Download } from 'lucide-react'
 import { generatePriceListPdf } from '@/lib/generate-price-list-pdf'
+import { PriceBreakdown } from '@/components/price-breakdown'
 import Link from 'next/link'
 import { isWeightVolumeUnit } from '@/lib/utils'
 import { TablePagination } from '@/components/table-pagination'
@@ -252,7 +258,23 @@ export default function PriceListPage() {
                         </TableCell>
                         <TableCell>
                           {recipe.sellingPrice ? (
-                            <div className="font-medium">R$ {recipe.sellingPrice.toFixed(2)}</div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <span className="cursor-help underline decoration-dotted hover:decoration-solid font-medium">
+                                  R$ {recipe.sellingPrice.toFixed(2)}
+                                </span>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80" side="left">
+                                <PriceBreakdown
+                                  sellingPrice={recipe.sellingPrice}
+                                  cost={recipe.pricingCost ?? recipe.unitCost ?? 0}
+                                  taxAmount={recipe.taxAmount}
+                                  netProfit={recipe.netProfit}
+                                  taxRate={recipe.taxRate}
+                                  compact
+                                />
+                              </PopoverContent>
+                            </Popover>
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
