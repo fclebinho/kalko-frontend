@@ -33,6 +33,7 @@ import { PriceHistoryChart } from '@/components/price-history-chart'
 import { useRecipeDetail } from '@/hooks/use-recipe-detail'
 import { RecipeStatusBadge } from '@/components/recipe-status-badge'
 import { InstructionsDisplay } from '@/components/instructions-display'
+import { PriceBreakdown } from '@/components/price-breakdown'
 // Cálculos centralizados no backend - não usar isWeightVolumeUnit
 
 interface RecipeDetails {
@@ -107,6 +108,9 @@ interface RecipeDetails {
     sellingPrice?: number
     actualMargin?: number
     profit?: number
+    taxAmount?: number
+    netProfit?: number
+    taxRate?: number
     mostExpensiveIngredient: {
       name: string
       totalCost: number
@@ -511,6 +515,19 @@ export default function RecipeDetailsPage() {
             </Card>
           )}
         </div>
+
+        {/* Price Breakdown - Exibido quando há preço de venda */}
+        {calculations && calculations.sellingPrice && calculations.sellingPrice > 0 && (
+          <div className="mb-8">
+            <PriceBreakdown
+              sellingPrice={calculations.sellingPrice}
+              cost={calculations.pricingCost}
+              taxAmount={calculations.taxAmount}
+              netProfit={calculations.netProfit}
+              taxRate={calculations.taxRate}
+            />
+          </div>
+        )}
 
         {/* Ingredients Table */}
         {calculations && (

@@ -107,7 +107,10 @@ export interface Recipe {
   suggestedPrice?: number
   sellingPrice?: number
   margin?: number
-  profit?: number // Lucro (sellingPrice - pricingCost), calculado pelo backend
+  profit?: number // Lucro bruto (sellingPrice - pricingCost), calculado pelo backend
+  taxAmount?: number // Valor do imposto sobre o preço de venda
+  netProfit?: number // Lucro líquido (profit - taxAmount)
+  taxRate?: number // Taxa de imposto aplicada
   calculationStatus: 'idle' | 'pending' | 'calculating' | 'completed' | 'error'
   lastCalculatedAt?: string
   createdAt: string
