@@ -352,12 +352,7 @@ export const recipesApi = {
     }>('/recipes/recalculation/status'),
 
   delete: (id: string) =>
-    api.delete(`/recipes/${id}`),
-
-  exportTechnicalSheet: (id: string) =>
-    api.get(`/recipes/${id}/technical-sheet`, {
-      responseType: 'blob'
-    })
+    api.delete(`/recipes/${id}`)
 }
 
 // API Methods - Costs

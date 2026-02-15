@@ -165,27 +165,8 @@ export default function RecipeDetailsPage() {
     }
   }
 
-  const handleExportTechnicalSheet = async () => {
-    try {
-      toast.loading('Gerando ficha técnica...', { id: 'export-pdf' })
-      const response = await recipesApi.exportTechnicalSheet(id)
-
-      // Criar blob e fazer download
-      const blob = new Blob([response.data], { type: 'application/pdf' })
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `ficha-tecnica-${recipe?.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-
-      toast.success('Ficha técnica exportada com sucesso!', { id: 'export-pdf' })
-    } catch (error: any) {
-      toast.error('Erro ao exportar ficha técnica', { id: 'export-pdf' })
-      console.error('Export error:', error)
-    }
+  const handleViewTechnicalSheet = () => {
+    router.push(`/recipes/${id}/technical-sheet`)
   }
 
   if (!recipe) {
@@ -238,10 +219,10 @@ export default function RecipeDetailsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleExportTechnicalSheet}
+                onClick={handleViewTechnicalSheet}
               >
                 <FileDown className="mr-2 h-4 w-4" />
-                Exportar Ficha Técnica
+                Ver Ficha Técnica
               </Button>
             </div>
           </div>
