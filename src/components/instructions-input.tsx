@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,28 +29,21 @@ interface InstructionsInputProps {
 }
 
 export function InstructionsInput({ value, onChange, className }: InstructionsInputProps) {
-  const [mode, setMode] = useState<'steps' | 'text'>('steps')
-  const [steps, setSteps] = useState<string[]>([])
+  // Initialize state from value prop
+  const initialParsed = value ? parseInstructions(value) : null
+
+  const [mode, setMode] = useState<'steps' | 'text'>(() => {
+    return initialParsed?.isStepByStep ? 'steps' : 'steps'
+  })
+  const [steps, setSteps] = useState<string[]>(() => {
+    return initialParsed?.isStepByStep ? initialParsed.steps : []
+  })
   const [stepInput, setStepInput] = useState('')
-  const [plainText, setPlainText] = useState('')
+  const [plainText, setPlainText] = useState(() => {
+    return initialParsed && !initialParsed.isStepByStep ? initialParsed.plainText : ''
+  })
   const [showConvertDialog, setShowConvertDialog] = useState(false)
   const [pendingMode, setPendingMode] = useState<'steps' | 'text'>('steps')
-
-  // Initialize from value
-  useEffect(() => {
-    if (value) {
-      const parsed = parseInstructions(value)
-      if (parsed.isStepByStep) {
-        setMode('steps')
-        setSteps(parsed.steps)
-        setPlainText(parsed.plainText)
-      } else {
-        setMode('text')
-        setPlainText(parsed.plainText)
-        setSteps(parsed.steps)
-      }
-    }
-  }, []) // Only run on mount
 
   const handleAddStep = () => {
     if (stepInput.trim()) {
