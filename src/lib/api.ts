@@ -111,6 +111,7 @@ export interface Recipe {
   taxAmount?: number // Valor do imposto sobre o preço de venda
   netProfit?: number // Lucro líquido (profit - taxAmount)
   taxRate?: number // Taxa de imposto aplicada
+  includeLaborAsSubRecipe?: boolean // Se false, apenas ingredientes contam quando usada como sub-receita
   calculationStatus: 'idle' | 'pending' | 'calculating' | 'completed' | 'error'
   lastCalculatedAt?: string
   createdAt: string

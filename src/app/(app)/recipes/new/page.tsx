@@ -63,6 +63,7 @@ export default function NewRecipePage() {
   const [storage, setStorage] = useState('')
   const [tips, setTips] = useState('')
   const [shelfLife, setShelfLife] = useState(0)
+  const [includeLaborAsSubRecipe, setIncludeLaborAsSubRecipe] = useState(true)
 
   // Step 4
   const [sellingPrice, setSellingPrice] = useState<number | null>(null)
@@ -108,6 +109,7 @@ export default function NewRecipePage() {
         shelfLife: shelfLife > 0 ? shelfLife : undefined,
         yield: yieldAmount,
         yieldUnit,
+        includeLaborAsSubRecipe,
         ingredients: ingredients.map(ing => ({
           ...(ing.ingredientId ? { ingredientId: ing.ingredientId } : {}),
           ...(ing.subRecipeId ? { subRecipeId: ing.subRecipeId } : {}),
@@ -476,6 +478,24 @@ export default function NewRecipePage() {
                     placeholder="Observações importantes..."
                     rows={4}
                   />
+                </div>
+
+                <div className="border rounded-lg p-4 bg-muted/30">
+                  <label htmlFor="includeLaborAsSubRecipe" className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      id="includeLaborAsSubRecipe"
+                      type="checkbox"
+                      checked={includeLaborAsSubRecipe}
+                      onChange={(e) => setIncludeLaborAsSubRecipe(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-gray-300"
+                    />
+                    <div>
+                      <span className="text-sm font-medium">Incluir mão de obra quando usada como sub-receita</span>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Se desmarcado, apenas o custo dos ingredientes será considerado quando esta receita for usada em outras receitas.
+                      </p>
+                    </div>
+                  </label>
                 </div>
               </div>
             )}

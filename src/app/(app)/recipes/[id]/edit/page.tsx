@@ -48,6 +48,7 @@ interface RecipeData {
   yield: number
   yieldUnit?: string
   sellingPrice?: number
+  includeLaborAsSubRecipe?: boolean
   ingredients: Array<{
     id: string
     ingredientId?: string
@@ -95,6 +96,7 @@ export default function EditRecipePage() {
   const [yieldUnit, setYieldUnit] = useState('un')
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([])
   const [sellingPrice, setSellingPrice] = useState<number | null>(null)
+  const [includeLaborAsSubRecipe, setIncludeLaborAsSubRecipe] = useState(true)
 
   useEffect(() => {
     if (id) {
@@ -123,6 +125,7 @@ export default function EditRecipePage() {
       setYieldAmount(recipe.yield)
       setYieldUnit(recipe.yieldUnit || 'un')
       setSellingPrice(recipe.sellingPrice || null)
+      setIncludeLaborAsSubRecipe(recipe.includeLaborAsSubRecipe ?? true)
 
       // Convert ingredients to the format expected by the form
       if (recipe.ingredients && recipe.ingredients.length > 0) {
@@ -176,6 +179,7 @@ export default function EditRecipePage() {
         shelfLife: shelfLife > 0 ? shelfLife : undefined,
         yield: yieldAmount,
         yieldUnit,
+        includeLaborAsSubRecipe,
         ingredients: ingredients.map((ing) => ({
           ...(ing.ingredientId ? { ingredientId: ing.ingredientId } : {}),
           ...(ing.subRecipeId ? { subRecipeId: ing.subRecipeId } : {}),
@@ -510,6 +514,24 @@ export default function EditRecipePage() {
                   placeholder="Observações importantes..."
                   rows={4}
                 />
+              </div>
+
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <label htmlFor="includeLaborAsSubRecipe" className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    id="includeLaborAsSubRecipe"
+                    type="checkbox"
+                    checked={includeLaborAsSubRecipe}
+                    onChange={(e) => setIncludeLaborAsSubRecipe(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300"
+                  />
+                  <div>
+                    <span className="text-sm font-medium">Incluir mão de obra quando usada como sub-receita</span>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Se desmarcado, apenas o custo dos ingredientes será considerado quando esta receita for usada em outras receitas.
+                    </p>
+                  </div>
+                </label>
               </div>
             </CardContent>
           </Card>
