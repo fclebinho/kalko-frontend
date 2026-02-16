@@ -11,8 +11,8 @@ import {
 import { cn } from '@/lib/utils'
 
 const adminNavItems = [
-  { name: 'Features', href: '/admin/features', icon: Blocks },
-  { name: 'Planos', href: '/admin/plans', icon: CreditCard },
+  { name: 'Features', href: '/management/features', icon: Blocks },
+  { name: 'Planos', href: '/management/plans', icon: CreditCard },
 ]
 
 interface AdminSidebarProps {

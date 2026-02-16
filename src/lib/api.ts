@@ -580,17 +580,17 @@ export interface AdminPlan {
 // API Methods - Admin
 export const adminApi = {
   checkAdmin: () =>
-    api.get<{ isAdmin: boolean }>('/admin/check'),
+    api.get<{ isAdmin: boolean }>('/management/check'),
 
   // Features CRUD
   getFeatures: () =>
-    api.get<{ data: AdminFeature[] }>('/admin/features'),
+    api.get<{ data: AdminFeature[] }>('/management/features'),
 
   getFeature: (id: string) =>
     api.get<AdminFeature>(`/admin/features/${id}`),
 
   createFeature: (data: { slug: string; name: string; description?: string; category?: string; icon?: string; isActive?: boolean; sortOrder?: number }) =>
-    api.post<AdminFeature>('/admin/features', data),
+    api.post<AdminFeature>('/management/features', data),
 
   updateFeature: (id: string, data: Partial<AdminFeature>) =>
     api.put<AdminFeature>(`/admin/features/${id}`, data),
@@ -600,7 +600,7 @@ export const adminApi = {
 
   // Plan-Feature Management
   getPlans: () =>
-    api.get<{ plans: AdminPlan[] }>('/admin/plans'),
+    api.get<{ plans: AdminPlan[] }>('/management/plans'),
 
   getPlanFeatures: (planType: string) =>
     api.get<{ data: Array<{ id: string; featureId: string; slug: string; name: string; displayText: string | null; sortOrder: number }> }>(`/admin/plans/${planType}/features`),

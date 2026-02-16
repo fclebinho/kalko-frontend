@@ -112,7 +112,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         {isAdmin && (
           <div className="px-3 pb-1">
             <Link
-              href="/admin"
+              href="/management"
               onClick={onClose}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors"
             >
