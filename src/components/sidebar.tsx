@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton, useUser } from '@clerk/nextjs'
@@ -11,8 +12,10 @@ import {
   List,
   Calculator,
   Settings,
+  Shield,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { adminApi } from '@/lib/api'
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -32,6 +35,13 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
   const { user } = useUser()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    adminApi.checkAdmin()
+      .then(() => setIsAdmin(true))
+      .catch(() => setIsAdmin(false))
+  }, [])
 
   return (
     <>
@@ -97,6 +107,20 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             )
           })}
         </nav>
+
+        {/* Admin link */}
+        {isAdmin && (
+          <div className="px-3 pb-1">
+            <Link
+              href="/admin"
+              onClick={onClose}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors"
+            >
+              <Shield className="h-5 w-5 flex-shrink-0" />
+              <span>Admin</span>
+            </Link>
+          </div>
+        )}
 
         {/* Branding */}
         <div className="px-5 py-4 border-t border-sidebar-border">

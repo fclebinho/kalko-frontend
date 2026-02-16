@@ -537,3 +537,74 @@ export const ordersApi = {
   }) =>
     api.post<OrderCalculation>('/orders/calculate', data)
 }
+
+// Types - Admin
+export interface AdminFeature {
+  id: string
+  slug: string
+  name: string
+  description?: string | null
+  category?: string | null
+  icon?: string | null
+  isActive: boolean
+  sortOrder: number
+  planFeatures?: Array<{ planType: string; displayText?: string | null; sortOrder: number }>
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AdminPlanFeatureEntry {
+  featureId: string
+  displayText?: string
+  sortOrder?: number
+}
+
+export interface AdminPlan {
+  id: string
+  name: string
+  price: number
+  description: string
+  limits: { recipes: number; ingredients: number }
+  features: Array<{
+    id: string
+    featureId: string
+    slug: string
+    name: string
+    displayText: string | null
+    sortOrder: number
+    icon: string | null
+    isActive: boolean
+  }>
+}
+
+// API Methods - Admin
+export const adminApi = {
+  checkAdmin: () =>
+    api.get<{ isAdmin: boolean }>('/admin/check'),
+
+  // Features CRUD
+  getFeatures: () =>
+    api.get<{ data: AdminFeature[] }>('/admin/features'),
+
+  getFeature: (id: string) =>
+    api.get<AdminFeature>(`/admin/features/${id}`),
+
+  createFeature: (data: { slug: string; name: string; description?: string; category?: string; icon?: string; isActive?: boolean; sortOrder?: number }) =>
+    api.post<AdminFeature>('/admin/features', data),
+
+  updateFeature: (id: string, data: Partial<AdminFeature>) =>
+    api.put<AdminFeature>(`/admin/features/${id}`, data),
+
+  deleteFeature: (id: string) =>
+    api.delete(`/admin/features/${id}`),
+
+  // Plan-Feature Management
+  getPlans: () =>
+    api.get<{ plans: AdminPlan[] }>('/admin/plans'),
+
+  getPlanFeatures: (planType: string) =>
+    api.get<{ data: Array<{ id: string; featureId: string; slug: string; name: string; displayText: string | null; sortOrder: number }> }>(`/admin/plans/${planType}/features`),
+
+  setPlanFeatures: (planType: string, features: AdminPlanFeatureEntry[]) =>
+    api.put(`/admin/plans/${planType}/features`, { features }),
+}
