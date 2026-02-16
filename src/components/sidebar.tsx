@@ -13,17 +13,26 @@ import {
   Calculator,
   Settings,
   Shield,
+  Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/api'
+import { useSubscription } from '@/hooks/use-subscription'
 
-const navItems = [
+interface NavItem {
+  name: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  feature?: string
+}
+
+const navItems: NavItem[] = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Ingredientes', href: '/ingredients', icon: Package },
   { name: 'Receitas', href: '/recipes', icon: ChefHat },
   { name: 'Custos', href: '/costs', icon: DollarSign },
   { name: 'Precos', href: '/price-list', icon: List },
-  { name: 'Pedidos', href: '/orders', icon: Calculator },
+  { name: 'Pedidos', href: '/orders', icon: Calculator, feature: 'calculator' },
   { name: 'Configuracoes', href: '/settings', icon: Settings },
 ]
 
@@ -35,6 +44,7 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
   const { user } = useUser()
+  const { hasFeature } = useSubscription()
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
@@ -88,6 +98,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
               item.href === '/'
                 ? pathname === '/'
                 : pathname?.startsWith(item.href)
+            const isLocked = item.feature ? !hasFeature(item.feature) : false
 
             return (
               <Link
@@ -96,13 +107,24 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                  isLocked
+                    ? 'text-sidebar-foreground/40 hover:bg-sidebar-accent/30'
+                    : isActive
+                      ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                 )}
               >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                <span>{item.name}</span>
+                {isLocked ? (
+                  <Lock className="h-5 w-5 flex-shrink-0" />
+                ) : (
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                )}
+                <span className="flex-1">{item.name}</span>
+                {isLocked && (
+                  <span className="text-[10px] font-semibold uppercase bg-sidebar-foreground/10 px-1.5 py-0.5 rounded">
+                    Pro
+                  </span>
+                )}
               </Link>
             )
           })}

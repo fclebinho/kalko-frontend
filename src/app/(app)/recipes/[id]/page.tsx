@@ -34,6 +34,7 @@ import { useRecipeDetail } from '@/hooks/use-recipe-detail'
 import { RecipeStatusBadge } from '@/components/recipe-status-badge'
 import { InstructionsDisplay } from '@/components/instructions-display'
 import { PriceBreakdown } from '@/components/price-breakdown'
+import { FeatureGate } from '@/components/feature-gate'
 // Cálculos centralizados no backend - não usar isWeightVolumeUnit
 
 interface RecipeDetails {
@@ -611,14 +612,16 @@ export default function RecipeDetailsPage() {
 
         {/* Price Calculator */}
         {calculations && (
-          <div className="mb-8">
-            <PriceCalculator
-              unitCost={calculations.pricingCost}
-              suggestedPrice={calculations.suggestedPrice}
-              currentPrice={recipe.sellingPrice || undefined}
-              onApplyPrice={handleApplyPrice}
-            />
-          </div>
+          <FeatureGate feature="calculator">
+            <div className="mb-8">
+              <PriceCalculator
+                unitCost={calculations.pricingCost}
+                suggestedPrice={calculations.suggestedPrice}
+                currentPrice={recipe.sellingPrice || undefined}
+                onApplyPrice={handleApplyPrice}
+              />
+            </div>
+          </FeatureGate>
         )}
 
         {/* Price History */}

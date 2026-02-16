@@ -26,6 +26,7 @@ import { generateOrderPdf } from '@/lib/generate-order-pdf'
 import { Plus, Trash2, Download, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRecipesForOrders } from '@/hooks/use-recipes-for-orders'
+import { FeatureGate } from '@/components/feature-gate'
 
 interface OrderItem {
   id: string
@@ -171,7 +172,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <>
+    <FeatureGate feature="calculator">
       <PageHeader title="Calculadora de Pedidos" description="Monte pedidos e calcule custos, preços e lucro">
           <Button variant="outline" onClick={handleClearOrder} disabled={items.length === 0}>
             <RotateCcw className="mr-2 h-4 w-4" />
@@ -394,6 +395,6 @@ export default function OrdersPage() {
             </Card>
           </div>
         </div>
-    </>
+    </FeatureGate>
   )
 }

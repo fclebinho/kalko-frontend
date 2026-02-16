@@ -441,6 +441,7 @@ export interface Subscription {
   cancelAtPeriodEnd: boolean
   cancelAt: string | null
   planInfo: Plan
+  featureSlugs: string[]
   usage: {
     recipes: UsageInfo
     ingredients: UsageInfo
