@@ -96,7 +96,7 @@ export default function EditRecipePage() {
   const [yieldUnit, setYieldUnit] = useState('un')
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([])
   const [sellingPrice, setSellingPrice] = useState<number | null>(null)
-  const [includeLaborAsSubRecipe, setIncludeLaborAsSubRecipe] = useState(true)
+  const [includeLaborAsSubRecipe, setIncludeLaborAsSubRecipe] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -125,7 +125,7 @@ export default function EditRecipePage() {
       setYieldAmount(recipe.yield)
       setYieldUnit(recipe.yieldUnit || 'un')
       setSellingPrice(recipe.sellingPrice || null)
-      setIncludeLaborAsSubRecipe(recipe.includeLaborAsSubRecipe ?? true)
+      setIncludeLaborAsSubRecipe(recipe.includeLaborAsSubRecipe ?? false)
 
       // Convert ingredients to the format expected by the form
       if (recipe.ingredients && recipe.ingredients.length > 0) {

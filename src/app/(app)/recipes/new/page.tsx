@@ -63,7 +63,7 @@ export default function NewRecipePage() {
   const [storage, setStorage] = useState('')
   const [tips, setTips] = useState('')
   const [shelfLife, setShelfLife] = useState(0)
-  const [includeLaborAsSubRecipe, setIncludeLaborAsSubRecipe] = useState(true)
+  const [includeLaborAsSubRecipe, setIncludeLaborAsSubRecipe] = useState(false)
 
   // Step 4
   const [sellingPrice, setSellingPrice] = useState<number | null>(null)
